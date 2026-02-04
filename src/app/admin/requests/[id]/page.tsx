@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
@@ -65,12 +64,22 @@ export default async function AdminRequestDetailsPage({
     .eq("id", id)
     .single();
 
-  if (error) {
-    notFound();
+  if (error || !data) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-4">
+        <Card className="p-6 space-y-2">
+          <div className="text-xl font-semibold">تعذر تحميل الطلب</div>
+          <div className="text-sm text-black/70 dark:text-white/70">
+            غالباً قاعدة البيانات غير مُحدّثة. شغّل ملف{" "}
+            <span className="font-mono">supabase/schema.sql</span> داخل Supabase
+            SQL Editor ثم أعد المحاولة.
+          </div>
+        </Card>
+      </div>
+    );
   }
 
   const row = data as RequestRow;
-  if (!row?.id) notFound();
 
   const images = (row.images ?? []).filter((x): x is ImageMeta => Boolean(x?.path));
   const signed: Array<{ path: string; url: string; mime: string; size: number }> = [];

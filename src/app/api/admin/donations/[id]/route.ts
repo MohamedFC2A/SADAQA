@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdminApi } from "@/lib/auth/admin-guard";
 
 export const runtime = "nodejs";
 
@@ -13,30 +13,13 @@ const patchSchema = z.object({
   campaign_id: z.string().uuid().optional(),
 });
 
-async function requireAdminUser() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false as const };
-
-  const admin = createSupabaseAdminClient();
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  return { ok: profile?.role === "admin" };
-}
-
 export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
-    const adminCheck = await requireAdminUser();
+    const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }
@@ -73,7 +56,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    const adminCheck = await requireAdminUser();
+    const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }
@@ -94,4 +77,3 @@ export async function DELETE(
     );
   }
 }
-

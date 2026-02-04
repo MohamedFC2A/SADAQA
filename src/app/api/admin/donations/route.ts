@@ -7,16 +7,11 @@ import { requireAdminApi } from "@/lib/auth/admin-guard";
 export const runtime = "nodejs";
 
 const createSchema = z.object({
-  slug: z.string().trim().min(2).max(64),
-  title: z.string().trim().min(2).max(120),
-  description: z.string().trim().max(2000).nullable().optional(),
+  campaign_id: z.string().uuid(),
+  amount: z.number().int().positive(),
   currency: z.string().trim().min(2).max(8).default("EGP"),
-  min_amount: z.number().int().positive().default(10),
-  max_amount: z.number().int().positive().default(100),
-  goal_amount: z.number().int().nonnegative().default(10000),
-  starts_on: z.string().nullable().optional(),
-  ends_on: z.string().nullable().optional(),
-  is_active: z.boolean().default(true),
+  donor_name: z.string().trim().min(2).max(80).nullable().optional(),
+  phone: z.string().trim().min(8).max(20).nullable().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -37,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     const admin = createSupabaseAdminClient();
     const { data, error } = await admin
-      .from("donation_campaigns")
+      .from("donations")
       .insert(parsed.data)
       .select("id")
       .single();
@@ -49,10 +44,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ id: data.id }, { status: 201 });
   } catch (e) {
     const errorId = randomUUID();
-    console.error("[POST /api/admin/campaigns]", { errorId, e });
+    console.error("[POST /api/admin/donations]", { errorId, e });
     return NextResponse.json(
       { error: "INTERNAL_ERROR", errorId },
       { status: 500 },
     );
   }
 }
+

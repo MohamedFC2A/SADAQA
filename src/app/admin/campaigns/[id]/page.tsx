@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Card } from "@/components/ui/card";
@@ -36,7 +35,20 @@ export default async function AdminCampaignDetailsPage({
     .eq("id", params.id)
     .single();
 
-  if (error || !data) notFound();
+  if (error || !data) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-4">
+        <Card className="p-6 space-y-2">
+          <div className="text-xl font-semibold">تعذر تحميل الحملة</div>
+          <div className="text-sm text-black/70 dark:text-white/70">
+            غالباً قاعدة البيانات غير مُحدّثة. شغّل ملف{" "}
+            <span className="font-mono">supabase/schema.sql</span> داخل Supabase
+            SQL Editor ثم أعد المحاولة.
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -52,4 +64,3 @@ export default async function AdminCampaignDetailsPage({
     </div>
   );
 }
-

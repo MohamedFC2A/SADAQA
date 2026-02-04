@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdminApi } from "@/lib/auth/admin-guard";
 
 export const runtime = "nodejs";
 
@@ -19,30 +19,13 @@ function getFileExt(mime: string): string | null {
   return null;
 }
 
-async function isAdmin() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false as const, userId: null };
-
-  const admin = createSupabaseAdminClient();
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  return { ok: profile?.role === "admin", userId: user.id };
-}
-
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
-    const adminCheck = await isAdmin();
+    const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }
@@ -136,7 +119,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    const adminCheck = await isAdmin();
+    const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }

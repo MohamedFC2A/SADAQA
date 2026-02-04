@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DonationActions } from "@/app/admin/donations/donation-actions";
+import { DonationCreator } from "@/app/admin/donations/donation-creator";
 
 type DonationRow = {
   id: string;
@@ -15,11 +16,17 @@ type DonationRow = {
   donation_campaigns?: { title?: string | null } | null;
 };
 
+type CampaignRow = { id: string; title: string; slug: string; currency: string };
+
 export default async function AdminDonationsPage() {
   const { isAdmin } = await requireAdmin();
   if (!isAdmin) return null;
 
   const supabase = createSupabaseAdminClient();
+  const { data: campaigns } = await supabase
+    .from("donation_campaigns")
+    .select("id,title,slug,currency")
+    .order("created_at", { ascending: true });
   const { data, error } = await supabase
     .from("donations")
     .select(
@@ -29,6 +36,7 @@ export default async function AdminDonationsPage() {
     .limit(50);
 
   const rows = (data ?? []) as DonationRow[];
+  const campaignRows = (campaigns ?? []) as CampaignRow[];
 
   return (
     <div className="space-y-6">
@@ -36,6 +44,16 @@ export default async function AdminDonationsPage() {
         <h1 className="text-3xl font-semibold">التبرعات</h1>
         <Badge tone="neutral">آخر 50 تبرع</Badge>
       </div>
+
+      <Card className="p-6">
+        {campaignRows.length > 0 ? (
+          <DonationCreator campaigns={campaignRows} />
+        ) : (
+          <div className="text-sm text-black/60 dark:text-white/60">
+            أنشئ حملة تبرع أولاً من صفحة الحملات.
+          </div>
+        )}
+      </Card>
 
       <Card className="overflow-hidden">
         {error ? (

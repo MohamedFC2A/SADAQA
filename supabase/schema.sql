@@ -3,6 +3,17 @@
 
 create extension if not exists pgcrypto;
 
+-- Storage buckets (idempotent)
+-- request-images: Private (served via signed URLs)
+insert into storage.buckets (id, name, public)
+values ('request-images', 'request-images', false)
+on conflict (id) do update set name = excluded.name, public = excluded.public;
+
+-- campaign-images: Public (public URLs for campaign cards)
+insert into storage.buckets (id, name, public)
+values ('campaign-images', 'campaign-images', true)
+on conflict (id) do update set name = excluded.name, public = excluded.public;
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   name text,
