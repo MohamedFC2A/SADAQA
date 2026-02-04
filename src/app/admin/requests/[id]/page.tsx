@@ -154,6 +154,11 @@ export default async function AdminRequestDetailsPage({
               status={row.status}
               urgency_level={row.urgency_level}
               admin_notes={row.admin_notes ?? ""}
+              requester_name={row.requester_name}
+              phone={row.phone}
+              location={row.location}
+              request_type={row.request_type}
+              description={row.description}
             />
           </Card>
 

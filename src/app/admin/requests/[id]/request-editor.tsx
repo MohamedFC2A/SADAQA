@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation";
 import {
   requestStatuses,
   urgencyLevels,
+  requestTypes,
   statusLabelAr,
   urgencyLabelAr,
+  requestTypeLabelAr,
   type RequestStatus,
   type UrgencyLevel,
+  type RequestType,
 } from "@/lib/requests/constants";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -25,20 +29,52 @@ export function RequestEditor(props: {
   status: RequestStatus;
   urgency_level: UrgencyLevel;
   admin_notes: string;
+  requester_name?: string;
+  phone?: string;
+  location?: string;
+  request_type?: RequestType;
+  description?: string;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<RequestStatus>(props.status);
   const [urgency, setUrgency] = useState<UrgencyLevel>(props.urgency_level);
   const [notes, setNotes] = useState(props.admin_notes);
+  const [requesterName, setRequesterName] = useState(props.requester_name ?? "");
+  const [phone, setPhone] = useState(props.phone ?? "");
+  const [location, setLocation] = useState(props.location ?? "");
+  const [type, setType] = useState<RequestType>(props.request_type ?? "money");
+  const [description, setDescription] = useState(props.description ?? "");
   const [state, setState] = useState<State>({ kind: "idle" });
 
   const changed = useMemo(() => {
     return (
       status !== props.status ||
       urgency !== props.urgency_level ||
-      notes !== props.admin_notes
+      notes !== props.admin_notes ||
+      requesterName !== (props.requester_name ?? "") ||
+      phone !== (props.phone ?? "") ||
+      location !== (props.location ?? "") ||
+      type !== (props.request_type ?? "money") ||
+      description !== (props.description ?? "")
     );
-  }, [status, urgency, notes, props.status, props.urgency_level, props.admin_notes]);
+  }, [
+    status,
+    urgency,
+    notes,
+    requesterName,
+    phone,
+    location,
+    type,
+    description,
+    props.status,
+    props.urgency_level,
+    props.admin_notes,
+    props.requester_name,
+    props.phone,
+    props.location,
+    props.request_type,
+    props.description,
+  ]);
 
   async function save() {
     setState({ kind: "saving" });
@@ -50,6 +86,11 @@ export function RequestEditor(props: {
           status,
           urgency_level: urgency,
           admin_notes: notes,
+          requester_name: requesterName,
+          phone,
+          location,
+          request_type: type,
+          description,
         }),
       });
 
@@ -68,7 +109,64 @@ export function RequestEditor(props: {
 
   return (
     <div className="space-y-4">
-      <div className="text-sm font-semibold">إدارة الطلب</div>
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-semibold">إدارة الطلب</div>
+        <button
+          type="button"
+          onClick={async () => {
+            const ok = window.confirm("هل تريد حذف الطلب نهائياً؟");
+            if (!ok) return;
+            setState({ kind: "saving" });
+            const res = await fetch(`/api/admin/requests/${props.id}`, {
+              method: "DELETE",
+            });
+            if (!res.ok) {
+              setState({ kind: "error", message: "تعذر حذف الطلب." });
+              return;
+            }
+            window.location.href = "/admin/requests";
+          }}
+          className="text-sm font-semibold text-pal-red hover:underline"
+        >
+          حذف الطلب
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <label className="text-sm font-semibold">الاسم</label>
+          <Input
+            value={requesterName}
+            onChange={(e) => setRequesterName(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold">الهاتف</label>
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <label className="text-sm font-semibold">الموقع</label>
+          <Input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <label className="text-sm font-semibold">نوع الاحتياج</label>
+          <Select
+            value={type}
+            onChange={(e) =>
+              setType(e.target.value as (typeof requestTypes)[number])
+            }
+          >
+            {requestTypes.map((t) => (
+              <option key={t} value={t}>
+                {requestTypeLabelAr[t]}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
 
       <div className="space-y-2">
         <label className="text-sm font-semibold">الحالة</label>
@@ -108,6 +206,15 @@ export function RequestEditor(props: {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="ملاحظات داخلية..."
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-semibold">وصف الحالة</label>
+        <Textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="تفاصيل الحالة..."
         />
       </div>
 

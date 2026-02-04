@@ -76,6 +76,9 @@ alter table public.donation_campaigns
 alter table public.donation_campaigns
   add column if not exists goal_amount integer not null default 10000;
 
+-- campaign images bucket (create in Supabase Storage as PUBLIC):
+-- name: campaign-images
+
 create table if not exists public.donations (
   id uuid primary key default gen_random_uuid(),
   campaign_id uuid not null references public.donation_campaigns (id),

@@ -38,6 +38,12 @@ export function AdminTopbar() {
           >
             التبرعات
           </Link>
+          <Link
+            href="/admin/campaigns"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            الحملات
+          </Link>
           <Button variant="secondary" onClick={logout}>
             تسجيل خروج
           </Button>

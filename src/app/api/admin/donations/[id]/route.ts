@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { randomUUID } from "crypto";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { requestStatuses, urgencyLevels } from "@/lib/requests/constants";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 const patchSchema = z.object({
-  status: z.enum(requestStatuses).optional(),
-  urgency_level: z.enum(urgencyLevels).optional(),
-  admin_notes: z.string().max(5000).optional(),
-  requester_name: z.string().trim().min(2).max(80).optional(),
-  phone: z.string().trim().min(8).max(20).optional(),
-  location: z.string().trim().min(2).max(120).optional(),
-  request_type: z
-    .enum(["money", "food", "clothes", "medical", "education", "housing"])
-    .optional(),
-  description: z.string().trim().min(20).max(2000).optional(),
+  amount: z.number().int().positive().optional(),
+  donor_name: z.string().trim().min(2).max(80).nullable().optional(),
+  phone: z.string().trim().min(8).max(20).nullable().optional(),
+  campaign_id: z.string().uuid().optional(),
 });
 
 async function requireAdminUser() {
@@ -25,7 +18,6 @@ async function requireAdminUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) return { ok: false as const };
 
   const admin = createSupabaseAdminClient();
@@ -49,9 +41,7 @@ export async function PATCH(
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }
 
-    const admin = createSupabaseAdminClient();
-
-    const json = await request.json().catch(() => null);
+    const json = (await request.json().catch(() => null)) as unknown;
     const parsed = patchSchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json(
@@ -60,11 +50,8 @@ export async function PATCH(
       );
     }
 
-    const { error } = await admin
-      .from("requests")
-      .update(parsed.data)
-      .eq("id", id);
-
+    const admin = createSupabaseAdminClient();
+    const { error } = await admin.from("donations").update(parsed.data).eq("id", id);
     if (error) {
       return NextResponse.json({ error: "DB_UPDATE_FAILED" }, { status: 500 });
     }
@@ -72,7 +59,7 @@ export async function PATCH(
     return NextResponse.json({ ok: true });
   } catch (e) {
     const errorId = randomUUID();
-    console.error("[PATCH /api/admin/requests/:id]", { errorId, e });
+    console.error("[PATCH /api/admin/donations/:id]", { errorId, e });
     return NextResponse.json(
       { error: "INTERNAL_ERROR", errorId },
       { status: 500 },
@@ -92,7 +79,7 @@ export async function DELETE(
     }
 
     const admin = createSupabaseAdminClient();
-    const { error } = await admin.from("requests").delete().eq("id", id);
+    const { error } = await admin.from("donations").delete().eq("id", id);
     if (error) {
       return NextResponse.json({ error: "DB_DELETE_FAILED" }, { status: 500 });
     }
@@ -100,10 +87,11 @@ export async function DELETE(
     return NextResponse.json({ ok: true });
   } catch (e) {
     const errorId = randomUUID();
-    console.error("[DELETE /api/admin/requests/:id]", { errorId, e });
+    console.error("[DELETE /api/admin/donations/:id]", { errorId, e });
     return NextResponse.json(
       { error: "INTERNAL_ERROR", errorId },
       { status: 500 },
     );
   }
 }
+

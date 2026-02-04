@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Card } from "@/components/ui/card";
@@ -61,7 +62,12 @@ export default async function AdminDonationsPage() {
                     className="border-t border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/10"
                   >
                     <td className="px-4 py-3 font-semibold">
-                      {r.donation_campaigns?.title ?? "—"}
+                      <Link
+                        href={`/admin/donations/${r.id}`}
+                        className="text-pal-green hover:underline"
+                      >
+                        {r.donation_campaigns?.title ?? "—"}
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-semibold">{r.amount}</span>{" "}
@@ -88,4 +94,3 @@ export default async function AdminDonationsPage() {
     </div>
   );
 }
-

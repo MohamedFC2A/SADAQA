@@ -23,6 +23,12 @@ export default function RequestHelpSuccessPage({
           <ButtonLink href="/" variant="secondary">
             العودة للرئيسية
           </ButtonLink>
+          <ButtonLink
+            href={`/request-help/status?id=${encodeURIComponent(id ?? "")}`}
+            variant="primary"
+          >
+            تتبع الطلب
+          </ButtonLink>
           <Link
             className="text-sm font-semibold text-pal-green hover:underline"
             href="/request-help"
