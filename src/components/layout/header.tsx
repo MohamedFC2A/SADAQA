@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -23,20 +23,26 @@ export function Header() {
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    if (!supabase) return;
+    let unsub: (() => void) | null = null;
 
-    supabase.auth.getSession().then(({ data }) => {
-      setIsAuthed(Boolean(data.session));
+    getSupabaseBrowserClient().then((supabase) => {
+      if (!supabase) return;
+      supabase.auth.getSession().then(({ data }) => {
+        setIsAuthed(Boolean(data.session));
+      });
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsAuthed(Boolean(session));
+      });
+      unsub = () => sub.subscription.unsubscribe();
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthed(Boolean(session));
-    });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      unsub?.();
+    };
   }, []);
 
   async function handleLogout() {
-    const supabase = createSupabaseBrowserClient();
+    const supabase = await getSupabaseBrowserClient();
     if (!supabase) return;
     await supabase.auth.signOut();
     window.location.href = "/";

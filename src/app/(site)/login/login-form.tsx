@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -27,12 +27,12 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
     setState({ kind: "submitting" });
 
     try {
-      const supabase = createSupabaseBrowserClient();
+      const supabase = await getSupabaseBrowserClient();
       if (!supabase) {
         setState({
           kind: "error",
           message:
-            "Supabase غير مُعدّ على Vercel بعد. أضف متغيرات البيئة ثم أعد النشر.",
+            "Supabase غير متاح حالياً. تأكد من متغيرات Vercel (Production) ثم Redeploy.",
         });
         return;
       }
@@ -62,12 +62,12 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
 
   async function loginWithGoogle() {
     setState({ kind: "submitting" });
-    const supabase = createSupabaseBrowserClient();
+    const supabase = await getSupabaseBrowserClient();
     if (!supabase) {
       setState({
         kind: "error",
         message:
-          "Supabase غير مُعدّ على Vercel بعد. أضف متغيرات البيئة ثم أعد النشر.",
+          "Supabase غير متاح حالياً. تأكد من متغيرات Vercel (Production) ثم Redeploy.",
       });
       return;
     }

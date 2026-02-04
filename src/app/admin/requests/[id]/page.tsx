@@ -13,6 +13,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RequestEditor } from "@/app/admin/requests/[id]/request-editor";
+import { ImagesManager } from "@/app/admin/requests/[id]/images-manager";
 
 const BUCKET = "request-images";
 
@@ -153,6 +154,13 @@ export default async function AdminRequestDetailsPage({
               status={row.status}
               urgency_level={row.urgency_level}
               admin_notes={row.admin_notes ?? ""}
+            />
+          </Card>
+
+          <Card className="p-6">
+            <ImagesManager
+              requestId={row.id}
+              images={signed.map((img) => ({ path: img.path, url: img.url }))}
             />
           </Card>
         </div>
