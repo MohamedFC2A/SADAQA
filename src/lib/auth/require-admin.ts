@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ADMIN_USER_ID } from "@/lib/auth/admin";
 
 export async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -10,6 +11,10 @@ export async function requireAdmin() {
 
   if (!user) {
     redirect("/login?next=/admin/requests");
+  }
+
+  if (user.id === ADMIN_USER_ID) {
+    return { user, isAdmin: true as const };
   }
 
   const admin = createSupabaseAdminClient();

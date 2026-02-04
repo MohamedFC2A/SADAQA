@@ -1,7 +1,14 @@
-import { DonateCampaign } from "@/app/(site)/donate/donate-campaign";
 import Image from "next/image";
+import { DonateCampaign } from "@/app/(site)/donate/donate-campaign";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import type { DonationCampaign as Campaign } from "@/lib/donations/types";
+
+export const dynamic = "force-dynamic";
 
 export default function DonatePage() {
+  // Server-rendered to keep the page functional even when client env is misconfigured.
+  const supabase = createSupabaseAdminClient();
+
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-3xl border border-black/10 bg-black p-8 shadow-sm dark:border-white/10">
@@ -30,7 +37,47 @@ export default function DonatePage() {
         </div>
       </section>
 
-      <DonateCampaign />
+      <DonationsContent supabase={supabase} />
+    </div>
+  );
+}
+
+async function DonationsContent({
+  supabase,
+}: {
+  supabase: ReturnType<typeof createSupabaseAdminClient>;
+}) {
+  const { data: campaigns } = await supabase
+    .from("donation_campaigns")
+    .select(
+      "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,starts_on,ends_on,is_active",
+    )
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+
+  const list = (campaigns ?? []) as Campaign[];
+  const ids = list.map((c) => c.id);
+
+  const totals = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: donations } = await supabase
+      .from("donations")
+      .select("campaign_id,amount")
+      .in("campaign_id", ids);
+
+    for (const row of (donations ?? []) as Array<{
+      campaign_id: string;
+      amount: number;
+    }>) {
+      totals.set(row.campaign_id, (totals.get(row.campaign_id) ?? 0) + row.amount);
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      {list.map((c) => (
+        <DonateCampaign key={c.id} campaign={c} totalDonated={totals.get(c.id) ?? 0} />
+      ))}
     </div>
   );
 }

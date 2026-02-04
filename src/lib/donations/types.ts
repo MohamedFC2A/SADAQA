@@ -3,9 +3,11 @@ export type DonationCampaign = {
   slug: string;
   title: string;
   description: string | null;
+  image_url: string | null;
   currency: string;
   min_amount: number;
   max_amount: number;
+  goal_amount: number;
   starts_on: string | null;
   ends_on: string | null;
   is_active: boolean;
@@ -20,4 +22,3 @@ export type Donation = {
   phone: string | null;
   created_at: string;
 };
-

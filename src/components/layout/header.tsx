@@ -21,6 +21,7 @@ const nav = [
 export function Header() {
   const pathname = usePathname();
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     let unsub: (() => void) | null = null;
@@ -40,6 +41,19 @@ export function Header() {
       unsub?.();
     };
   }, []);
+
+  useEffect(() => {
+    fetch("/api/me", { cache: "no-store" })
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data || typeof data !== "object") return;
+        const obj = data as Record<string, unknown>;
+        setIsAdmin(obj["isAdmin"] === true);
+      })
+      .catch(() => {
+        setIsAdmin(false);
+      });
+  }, [isAuthed]);
 
   async function handleLogout() {
     const supabase = await getSupabaseBrowserClient();
@@ -80,13 +94,15 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ButtonLink
-            href="/admin/requests"
-            variant="ghost"
-            className="hidden sm:inline-flex"
-          >
-            لوحة الأدمن
-          </ButtonLink>
+          {isAdmin ? (
+            <ButtonLink
+              href="/admin/requests"
+              variant="ghost"
+              className="hidden sm:inline-flex"
+            >
+              لوحة الأدمن
+            </ButtonLink>
+          ) : null}
           {isAuthed ? (
             <Button variant="secondary" onClick={handleLogout}>
               تسجيل خروج

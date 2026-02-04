@@ -27,6 +27,15 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
 
+-- Force admin role for the specified admin user id
+insert into public.profiles (id, name, role)
+values (
+  '205db945-dc5a-4740-94cf-4a01244e9dee',
+  'Mohamed Matany',
+  'admin'
+)
+on conflict (id) do update set role = excluded.role;
+
 create table if not exists public.requests (
   id uuid primary key default gen_random_uuid(),
   user_id uuid null references public.profiles (id),
@@ -48,16 +57,19 @@ create table if not exists public.donation_campaigns (
   slug text not null unique,
   title text not null,
   description text,
+  image_url text,
   currency text not null default 'EGP',
   min_amount integer not null default 10,
   max_amount integer not null default 100,
+  goal_amount integer not null default 10000,
   starts_on date,
   ends_on date,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (min_amount > 0),
-  check (max_amount >= min_amount)
+  check (max_amount >= min_amount),
+  check (goal_amount >= 0)
 );
 
 create table if not exists public.donations (
@@ -99,6 +111,21 @@ values (
   'EGP',
   '2025-10-02',
   null,
+  true
+)
+on conflict (slug) do nothing;
+
+-- Seed: general donations campaign (supports 500/1000 EGP amounts)
+insert into public.donation_campaigns (slug, title, description, image_url, min_amount, max_amount, goal_amount, currency, is_active)
+values (
+  'general',
+  'تبرع عام',
+  'تبرعات عامة لدعم أعمال الخير والمحتاجين.',
+  '/images/donate-hero.jpg',
+  10,
+  5000,
+  50000,
+  'EGP',
   true
 )
 on conflict (slug) do nothing;
