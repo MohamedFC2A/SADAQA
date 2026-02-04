@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminApi } from "@/lib/auth/admin-guard";
 
@@ -9,6 +10,7 @@ const MAX_IMAGES = 5;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 const BUCKET = "request-images";
+const idSchema = z.string().uuid();
 
 type StoredImage = { path: string; mime: string; size: number };
 
@@ -24,7 +26,15 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idParsed = idSchema.safeParse(rawId);
+    if (!idParsed.success) {
+      return NextResponse.json(
+        { error: "INVALID_ID", received: rawId },
+        { status: 400 },
+      );
+    }
+    const id = idParsed.data;
     const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -118,7 +128,15 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idParsed = idSchema.safeParse(rawId);
+    if (!idParsed.success) {
+      return NextResponse.json(
+        { error: "INVALID_ID", received: rawId },
+        { status: 400 },
+      );
+    }
+    const id = idParsed.data;
     const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminApi } from "@/lib/auth/admin-guard";
 
@@ -8,6 +9,7 @@ export const runtime = "nodejs";
 const BUCKET = "campaign-images";
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
+const idSchema = z.string().uuid();
 
 function getFileExt(mime: string): string | null {
   if (mime === "image/jpeg") return "jpg";
@@ -21,7 +23,16 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idParsed = idSchema.safeParse(rawId);
+    if (!idParsed.success) {
+      return NextResponse.json(
+        { error: "INVALID_ID", received: rawId },
+        { status: 400 },
+      );
+    }
+    const id = idParsed.data;
+
     const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -91,7 +102,16 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idParsed = idSchema.safeParse(rawId);
+    if (!idParsed.success) {
+      return NextResponse.json(
+        { error: "INVALID_ID", received: rawId },
+        { status: 400 },
+      );
+    }
+    const id = idParsed.data;
+
     const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });

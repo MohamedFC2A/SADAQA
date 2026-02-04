@@ -7,6 +7,8 @@ import { requireAdminApi } from "@/lib/auth/admin-guard";
 
 export const runtime = "nodejs";
 
+const idSchema = z.string().uuid();
+
 const patchSchema = z.object({
   status: z.enum(requestStatuses).optional(),
   urgency_level: z.enum(urgencyLevels).optional(),
@@ -25,7 +27,16 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idParsed = idSchema.safeParse(rawId);
+    if (!idParsed.success) {
+      return NextResponse.json(
+        { error: "INVALID_ID", received: rawId },
+        { status: 400 },
+      );
+    }
+    const id = idParsed.data;
+
     const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -70,7 +81,16 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idParsed = idSchema.safeParse(rawId);
+    if (!idParsed.success) {
+      return NextResponse.json(
+        { error: "INVALID_ID", received: rawId },
+        { status: 400 },
+      );
+    }
+    const id = idParsed.data;
+
     const adminCheck = await requireAdminApi();
     if (!adminCheck.ok) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });

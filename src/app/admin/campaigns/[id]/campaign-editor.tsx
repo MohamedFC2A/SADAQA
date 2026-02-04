@@ -71,6 +71,10 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
   ]);
 
   async function save() {
+    if (!campaign.id) {
+      setState({ kind: "error", message: "ID الحملة غير صالح." });
+      return;
+    }
     setState({ kind: "saving" });
     try {
       const res = await fetch(`/api/admin/campaigns/${campaign.id}`, {
@@ -90,7 +94,15 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
         }),
       });
       if (!res.ok) {
-        setState({ kind: "error", message: "تعذر حفظ التغييرات." });
+        const data = (await res.json().catch(() => null)) as unknown;
+        const msg =
+          data && typeof data === "object"
+            ? (data as Record<string, unknown>)["message"]
+            : null;
+        setState({
+          kind: "error",
+          message: `تعذر حفظ التغييرات.${typeof msg === "string" ? ` (${msg})` : ""}`,
+        });
         return;
       }
       setState({ kind: "saved" });
@@ -103,6 +115,10 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
 
   async function uploadImage() {
     if (!imageFile) return;
+    if (!campaign.id) {
+      setState({ kind: "error", message: "ID الحملة غير صالح." });
+      return;
+    }
     setState({ kind: "saving" });
     const form = new FormData();
     form.set("image", imageFile);
@@ -111,7 +127,15 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
       body: form,
     });
     if (!res.ok) {
-      setState({ kind: "error", message: "تعذر رفع الصورة." });
+      const data = (await res.json().catch(() => null)) as unknown;
+      const msg =
+        data && typeof data === "object"
+          ? (data as Record<string, unknown>)["message"]
+          : null;
+      setState({
+        kind: "error",
+        message: `تعذر رفع الصورة.${typeof msg === "string" ? ` (${msg})` : ""}`,
+      });
       return;
     }
     setImageFile(null);
@@ -121,6 +145,10 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
   }
 
   async function removeCampaign() {
+    if (!campaign.id) {
+      setState({ kind: "error", message: "ID الحملة غير صالح." });
+      return;
+    }
     const ok = window.confirm("هل تريد حذف الحملة نهائياً؟ سيتم حذفها من المنصة.");
     if (!ok) return;
     setState({ kind: "saving" });
@@ -128,13 +156,25 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
       method: "DELETE",
     });
     if (!res.ok) {
-      setState({ kind: "error", message: "تعذر حذف الحملة." });
+      const data = (await res.json().catch(() => null)) as unknown;
+      const msg =
+        data && typeof data === "object"
+          ? (data as Record<string, unknown>)["message"]
+          : null;
+      setState({
+        kind: "error",
+        message: `تعذر حذف الحملة.${typeof msg === "string" ? ` (${msg})` : ""}`,
+      });
       return;
     }
     window.location.href = "/admin/campaigns";
   }
 
   async function clearImage() {
+    if (!campaign.id) {
+      setState({ kind: "error", message: "ID الحملة غير صالح." });
+      return;
+    }
     setState({ kind: "saving" });
     const res = await fetch(`/api/admin/campaigns/${campaign.id}/image`, {
       method: "DELETE",
@@ -314,4 +354,3 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
     </div>
   );
 }
-

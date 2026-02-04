@@ -7,6 +7,10 @@ export function CampaignActions({ id }: { id: string }) {
   const router = useRouter();
 
   async function remove() {
+    if (!id) {
+      alert("ID غير صالح.");
+      return;
+    }
     const ok = window.confirm("هل تريد حذف الحملة نهائياً؟");
     if (!ok) return;
     const res = await fetch(`/api/admin/campaigns/${id}`, { method: "DELETE" });
