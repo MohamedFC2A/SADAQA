@@ -50,10 +50,10 @@ function toneForUrgency(
 export default async function AdminRequestDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   await requireAdmin();
-  const { id } = params;
+  const { id } = await params;
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase

@@ -21,10 +21,12 @@ type CampaignRow = {
 export default async function AdminCampaignDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { isAdmin } = await requireAdmin();
   if (!isAdmin) return null;
+
+  const { id } = await params;
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
@@ -32,7 +34,7 @@ export default async function AdminCampaignDetailsPage({
     .select(
       "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,starts_on,ends_on,is_active",
     )
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   const schemaOutdated =
@@ -45,7 +47,7 @@ export default async function AdminCampaignDetailsPage({
         .select(
           "id,slug,title,description,currency,min_amount,max_amount,starts_on,ends_on,is_active",
         )
-        .eq("id", params.id)
+        .eq("id", id)
         .single()
     : { data: null as unknown, error: null as unknown };
 
@@ -122,7 +124,7 @@ export default async function AdminCampaignDetailsPage({
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold">تعديل الحملة</h1>
         <div className="text-sm text-black/60 dark:text-white/60">
-          ID: <span className="font-mono">{params.id}</span>
+          ID: <span className="font-mono">{id}</span>
         </div>
       </div>
       <Card className="p-6">

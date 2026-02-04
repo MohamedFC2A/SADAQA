@@ -30,6 +30,23 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Admin helper (used by RLS policies)
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select auth.uid() = '205db945-dc5a-4740-94cf-4a01244e9dee'::uuid
+    or exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    );
+$$;
+
 -- Create a profile row for every new auth user
 create or replace function public.handle_new_user()
 returns trigger as $$
@@ -116,6 +133,63 @@ create table if not exists public.donations (
   phone text,
   created_at timestamptz not null default now()
 );
+
+-- RLS (fix Supabase linter: rls_disabled_in_public)
+alter table public.profiles enable row level security;
+alter table public.requests enable row level security;
+alter table public.donation_campaigns enable row level security;
+alter table public.donations enable row level security;
+
+-- Grants (PostgREST roles)
+grant select on public.donation_campaigns to anon, authenticated;
+grant select on public.profiles to authenticated;
+
+-- Policies (idempotent via drop)
+drop policy if exists profiles_select_own on public.profiles;
+create policy profiles_select_own
+on public.profiles
+for select
+to authenticated
+using (id = auth.uid());
+
+drop policy if exists profiles_admin_all on public.profiles;
+create policy profiles_admin_all
+on public.profiles
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists requests_admin_all on public.requests;
+create policy requests_admin_all
+on public.requests
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists campaigns_select_active on public.donation_campaigns;
+create policy campaigns_select_active
+on public.donation_campaigns
+for select
+to anon, authenticated
+using (is_active = true);
+
+drop policy if exists campaigns_admin_all on public.donation_campaigns;
+create policy campaigns_admin_all
+on public.donation_campaigns
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists donations_admin_all on public.donations;
+create policy donations_admin_all
+on public.donations
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
 
 create or replace function public.set_updated_at()
 returns trigger as $$

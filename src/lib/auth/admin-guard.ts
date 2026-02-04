@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ADMIN_USER_ID } from "@/lib/auth/admin";
+import { env } from "@/lib/env";
 
 export async function requireAdminApi() {
   const supabase = await createSupabaseServerClient();
@@ -11,13 +12,28 @@ export async function requireAdminApi() {
   if (!user) return { ok: false as const };
   if (user.id === ADMIN_USER_ID) return { ok: true as const, userId: user.id };
 
-  const admin = createSupabaseAdminClient();
-  const { data: profile } = await admin
+  // Prefer checking via the user's session (RLS), and fall back to service role
+  // if the DB isn't migrated yet.
+  const { data: profileAuthed, error: profileAuthedError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  return { ok: profile?.role === "admin", userId: user.id };
-}
+  if (!profileAuthedError) {
+    return { ok: profileAuthed?.role === "admin", userId: user.id };
+  }
 
+  if (env.supabaseServiceRoleKeyOptional()) {
+    const admin = createSupabaseAdminClient();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    return { ok: profile?.role === "admin", userId: user.id };
+  }
+
+  return { ok: false as const, userId: user.id };
+}

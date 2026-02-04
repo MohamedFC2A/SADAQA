@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ADMIN_USER_ID } from "@/lib/auth/admin";
+import { env } from "@/lib/env";
 
 export async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -17,6 +18,22 @@ export async function requireAdmin() {
     return { user, isAdmin: true as const };
   }
 
+  // Prefer checking via the user's session (RLS), and fall back to service role
+  // if the DB isn't migrated yet.
+  const { data: profileAuthed, error: profileAuthedError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profileAuthedError) {
+    return { user, isAdmin: profileAuthed?.role === "admin" };
+  }
+
+  if (!env.supabaseServiceRoleKeyOptional()) {
+    return { user, isAdmin: false as const };
+  }
+
   const admin = createSupabaseAdminClient();
   const { data: profile, error } = await admin
     .from("profiles")
@@ -24,9 +41,5 @@ export async function requireAdmin() {
     .eq("id", user.id)
     .single();
 
-  if (error || profile?.role !== "admin") {
-    return { user, isAdmin: false as const };
-  }
-
-  return { user, isAdmin: true as const };
+  return { user, isAdmin: !error && profile?.role === "admin" };
 }

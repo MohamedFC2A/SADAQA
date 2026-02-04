@@ -13,6 +13,7 @@ function getRequiredEnv(name: string): string {
 export const env = {
   supabaseUrlOptional: () => getOptionalEnv("NEXT_PUBLIC_SUPABASE_URL"),
   supabaseAnonKeyOptional: () => getOptionalEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  supabaseServiceRoleKeyOptional: () => getOptionalEnv("SUPABASE_SERVICE_ROLE_KEY"),
   supabaseUrl: () => getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
   supabaseAnonKey: () => getRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
   supabaseServiceRoleKey: () => getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"),

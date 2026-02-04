@@ -22,16 +22,18 @@ type CampaignRow = {
 export default async function AdminDonationDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { isAdmin } = await requireAdmin();
   if (!isAdmin) return null;
+
+  const { id } = await params;
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("donations")
     .select("id,amount,currency,donor_name,phone,campaign_id,created_at")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !data) {
@@ -66,7 +68,7 @@ export default async function AdminDonationDetailsPage({
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold">تفاصيل التبرع</h1>
         <div className="text-sm text-black/60 dark:text-white/60">
-          ID: <span className="font-mono">{params.id}</span>
+          ID: <span className="font-mono">{id}</span>
         </div>
       </div>
 
