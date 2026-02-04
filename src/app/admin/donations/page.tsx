@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DonationActions } from "@/app/admin/donations/donation-actions";
 
 type DonationRow = {
   id: string;
@@ -53,6 +54,9 @@ export default async function AdminDonationsPage() {
                   <th className="px-4 py-3 text-right font-semibold">الاسم</th>
                   <th className="px-4 py-3 text-right font-semibold">الهاتف</th>
                   <th className="px-4 py-3 text-right font-semibold">التاريخ</th>
+                  <th className="px-4 py-3 text-right font-semibold">
+                    إجراءات
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -83,6 +87,9 @@ export default async function AdminDonationsPage() {
                     </td>
                     <td className="px-4 py-3 text-black/60 dark:text-white/60">
                       {new Date(r.created_at).toLocaleString("ar")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <DonationActions id={r.id} />
                     </td>
                   </tr>
                 ))}

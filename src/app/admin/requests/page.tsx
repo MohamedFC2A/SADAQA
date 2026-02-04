@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { RequestActions } from "@/app/admin/requests/request-actions";
 
 type RequestRow = {
   id: string;
@@ -192,6 +193,9 @@ export default async function AdminRequestsPage({
                   <th className="px-4 py-3 text-right font-semibold">
                     تاريخ
                   </th>
+                  <th className="px-4 py-3 text-right font-semibold">
+                    إجراءات
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -224,6 +228,9 @@ export default async function AdminRequestsPage({
                     </td>
                     <td className="px-4 py-3 text-black/60 dark:text-white/60">
                       {new Date(r.created_at).toLocaleDateString("ar")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <RequestActions id={r.id} />
                     </td>
                   </tr>
                 ))}

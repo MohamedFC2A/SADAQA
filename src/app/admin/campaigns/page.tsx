@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CampaignCreator } from "@/app/admin/campaigns/campaign-creator";
+import { CampaignActions } from "@/app/admin/campaigns/campaign-actions";
 
 type CampaignRow = {
   id: string;
@@ -54,6 +55,9 @@ export default async function AdminCampaignsPage() {
                   <th className="px-4 py-3 text-right font-semibold">المدى</th>
                   <th className="px-4 py-3 text-right font-semibold">الهدف</th>
                   <th className="px-4 py-3 text-right font-semibold">الحالة</th>
+                  <th className="px-4 py-3 text-right font-semibold">
+                    إجراءات
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -84,6 +88,9 @@ export default async function AdminCampaignsPage() {
                         {c.is_active ? "نشط" : "غير نشط"}
                       </Badge>
                     </td>
+                    <td className="px-4 py-3">
+                      <CampaignActions id={c.id} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -94,4 +101,3 @@ export default async function AdminCampaignsPage() {
     </div>
   );
 }
-
