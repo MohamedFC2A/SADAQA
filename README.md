@@ -1,5 +1,5 @@
-# ALZAKA
-منصة الزكاة والتبرعات + طلبات المساعدة (MVP: Request Help + Admin).
+# SADAQA
+منصة التبرعات + طلبات المساعدة (MVP: Request Help + Admin).
 
 ## المتطلبات
 - Node.js + npm

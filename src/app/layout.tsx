@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google";
+import { Cairo, Reem_Kufi_Fun } from "next/font/google";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -7,9 +7,15 @@ const cairo = Cairo({
   variable: "--font-sans",
 });
 
+const brand = Reem_Kufi_Fun({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "700"],
+  variable: "--font-brand",
+});
+
 export const metadata: Metadata = {
-  title: "ALZAKA | منصة الزكاة والتبرعات",
-  description: "منصة لجمع الزكاة والتبرعات وطلبات المساعدة للمحتاجين.",
+  title: "SADAQA | منصة التبرعات وطلبات المساعدة",
+  description: "منصة عربية للتبرعات وطلبات المساعدة مع خصوصية وشفافية.",
 };
 
 export default function RootLayout({
@@ -18,7 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={cairo.variable}>
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`${cairo.variable} ${brand.variable}`}
+    >
       <body className="min-h-dvh bg-background text-foreground antialiased">
         {children}
       </body>

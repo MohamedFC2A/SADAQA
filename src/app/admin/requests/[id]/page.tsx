@@ -96,6 +96,7 @@ export default async function AdminRequestDetailsPage({
             {urgencyLabelAr[row.urgency_level]}
           </Badge>
           <Badge tone={toneForStatus(row.status)}>{statusLabelAr[row.status]}</Badge>
+          <Badge tone="neutral">{requestTypeLabelAr[row.request_type]}</Badge>
         </div>
       </div>
 
@@ -125,20 +126,24 @@ export default async function AdminRequestDetailsPage({
                   </div>
                 ))}
               </div>
+              <div className="text-xs text-black/60 dark:text-white/60">
+                الروابط موقعة وتنتهي تلقائياً خلال ساعة.
+              </div>
             </Card>
           ) : null}
         </div>
 
         <div className="space-y-6">
           <Card className="p-6 space-y-3">
-            <div className="text-sm font-semibold">بيانات التواصل</div>
-            <div className="text-sm text-black/70 dark:text-white/70">
-              <div>الهاتف: {row.phone}</div>
-              <div>الموقع: {row.location}</div>
-              <div>النوع: {requestTypeLabelAr[row.request_type]}</div>
+            <div className="text-sm font-semibold">معلومات أساسية</div>
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="neutral">الهاتف: {row.phone}</Badge>
+              <Badge tone="neutral">الموقع: {row.location}</Badge>
             </div>
             <div className="text-xs text-black/60 dark:text-white/60">
-              {new Date(row.created_at).toLocaleString("ar")}
+              تم الإنشاء: {new Date(row.created_at).toLocaleString("ar")}
+              <div />
+              آخر تحديث: {new Date(row.updated_at).toLocaleString("ar")}
             </div>
           </Card>
 

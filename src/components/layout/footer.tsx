@@ -8,10 +8,9 @@ export function Footer() {
           <span className="h-2 w-2 rounded-full bg-pal-green" />
           <span className="h-2 w-2 rounded-full bg-pal-gold" />
         </div>
-        <div>© {new Date().getFullYear()} ALZAKA</div>
+        <div>© {new Date().getFullYear()} SADAQA</div>
         <div>نلتزم بخصوصية بيانات المتبرعين والمستفيدين.</div>
       </div>
     </footer>
   );
 }
-

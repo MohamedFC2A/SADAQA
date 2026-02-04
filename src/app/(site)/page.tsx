@@ -32,7 +32,7 @@ export default function HomePage() {
             <div className="h-3 w-3 rounded-full bg-pal-gold" />
           </div>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            ALZAKA — منصة الزكاة والتبرعات
+            SADAQA — منصة التبرعات وطلبات المساعدة
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-black/70 dark:text-white/70">
             منصة عربية تجمع بين التبرع وطلبات المساعدة، بواجهة تحترم الخصوصية
@@ -43,7 +43,7 @@ export default function HomePage() {
               طلب مساعدة
             </ButtonLink>
             <ButtonLink href="/donate" variant="secondary">
-              تبرع (قريباً)
+              تبرع الآن
             </ButtonLink>
           </div>
         </div>

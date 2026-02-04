@@ -1,15 +1,10 @@
-import { Card } from "@/components/ui/card";
+import { DonateCampaign } from "@/app/(site)/donate/donate-campaign";
 
 export default function DonatePage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold">التبرع</h1>
-      <Card className="p-6">
-        <p className="leading-8 text-black/70 dark:text-white/70">
-          قريباً: حاسبة زكاة ونموذج التبرع وربط بوابات الدفع.
-        </p>
-      </Card>
+      <DonateCampaign />
     </div>
   );
 }
-

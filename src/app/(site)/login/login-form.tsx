@@ -60,8 +60,53 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
     }
   }
 
+  async function loginWithGoogle() {
+    setState({ kind: "submitting" });
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) {
+      setState({
+        kind: "error",
+        message:
+          "Supabase غير مُعدّ على Vercel بعد. أضف متغيرات البيئة ثم أعد النشر.",
+      });
+      return;
+    }
+
+    const origin = window.location.origin;
+    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(
+      nextPath && nextPath.startsWith("/") ? nextPath : "/admin/requests",
+    )}`;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+
+    if (error) {
+      setState({
+        kind: "error",
+        message: "تعذر تسجيل الدخول بجوجل. تأكد من إعداد Supabase OAuth.",
+      });
+    }
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-3">
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          onClick={loginWithGoogle}
+        >
+          المتابعة باستخدام Google
+        </Button>
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
+          <div className="text-xs text-black/50 dark:text-white/50">أو</div>
+          <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
+        </div>
+      </div>
       <div className="space-y-2">
         <label className="text-sm font-semibold">البريد الإلكتروني</label>
         <Input
@@ -92,6 +137,11 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
       <Button type="submit" disabled={!canSubmit} className="w-full">
         {state.kind === "submitting" ? "جارٍ الدخول..." : "دخول"}
       </Button>
+
+      <div className="text-xs text-black/60 dark:text-white/60">
+        ملاحظة: لتفعيل Google Login أضف Redirect URL داخل Supabase Auth إلى:
+        <div className="mt-1 font-mono">/auth/callback</div>
+      </div>
     </form>
   );
 }

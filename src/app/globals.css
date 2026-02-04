@@ -19,6 +19,7 @@
   --color-pal-green: var(--pal-green);
   --color-pal-gold: var(--pal-gold);
   --font-sans: var(--font-sans);
+  --font-brand: var(--font-brand);
 }
 
 @media (prefers-color-scheme: dark) {

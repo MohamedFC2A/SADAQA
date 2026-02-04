@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import Link from "next/link";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const nav = [
   { href: "/", label: "الرئيسية" },
@@ -45,13 +46,13 @@ export function Header() {
     <header className="border-b border-black/10 bg-white/70 backdrop-blur dark:border-white/10 dark:bg-black/40">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-pal-red text-white">
-            AZ
-          </div>
+          <BrandMark />
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold">ALZAKA</span>
+            <span className="font-brand text-base font-bold tracking-wide">
+              SADAQA
+            </span>
             <span className="text-xs text-black/60 dark:text-white/60">
-              منصة الزكاة والتبرعات
+              منصة التبرعات وطلبات المساعدة
             </span>
           </div>
         </Link>
