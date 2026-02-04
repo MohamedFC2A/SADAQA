@@ -58,7 +58,11 @@ export async function PATCH(
     const errorId = randomUUID();
     console.error("[PATCH /api/admin/donations/:id]", { errorId, e });
     return NextResponse.json(
-      { error: "INTERNAL_ERROR", errorId },
+      {
+        error: "INTERNAL_ERROR",
+        errorId,
+        message: e instanceof Error ? e.message : null,
+      },
       { status: 500 },
     );
   }
@@ -98,7 +102,11 @@ export async function DELETE(
     const errorId = randomUUID();
     console.error("[DELETE /api/admin/donations/:id]", { errorId, e });
     return NextResponse.json(
-      { error: "INTERNAL_ERROR", errorId },
+      {
+        error: "INTERNAL_ERROR",
+        errorId,
+        message: e instanceof Error ? e.message : null,
+      },
       { status: 500 },
     );
   }

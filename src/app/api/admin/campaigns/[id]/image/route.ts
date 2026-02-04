@@ -91,7 +91,11 @@ export async function POST(
     const errorId = randomUUID();
     console.error("[POST /api/admin/campaigns/:id/image]", { errorId, e });
     return NextResponse.json(
-      { error: "INTERNAL_ERROR", errorId },
+      {
+        error: "INTERNAL_ERROR",
+        errorId,
+        message: e instanceof Error ? e.message : null,
+      },
       { status: 500 },
     );
   }
@@ -132,7 +136,11 @@ export async function DELETE(
     const errorId = randomUUID();
     console.error("[DELETE /api/admin/campaigns/:id/image]", { errorId, e });
     return NextResponse.json(
-      { error: "INTERNAL_ERROR", errorId },
+      {
+        error: "INTERNAL_ERROR",
+        errorId,
+        message: e instanceof Error ? e.message : null,
+      },
       { status: 500 },
     );
   }

@@ -49,7 +49,11 @@ export async function POST(request: NextRequest) {
     const errorId = randomUUID();
     console.error("[POST /api/admin/donations]", { errorId, e });
     return NextResponse.json(
-      { error: "INTERNAL_ERROR", errorId },
+      {
+        error: "INTERNAL_ERROR",
+        errorId,
+        message: e instanceof Error ? e.message : null,
+      },
       { status: 500 },
     );
   }
