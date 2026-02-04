@@ -6,7 +6,11 @@ export function createSupabaseMiddlewareClient(
   request: NextRequest,
   response: NextResponse,
 ) {
-  return createServerClient(env.supabaseUrl(), env.supabaseAnonKey(), {
+  const url = env.supabaseUrlOptional();
+  const anon = env.supabaseAnonKeyOptional();
+  if (!url || !anon) return null;
+
+  return createServerClient(url, anon, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -19,4 +23,3 @@ export function createSupabaseMiddlewareClient(
     },
   });
 }
-

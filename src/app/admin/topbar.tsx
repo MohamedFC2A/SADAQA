@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 export function AdminTopbar() {
   async function logout() {
     const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
     await supabase.auth.signOut();
     window.location.href = "/";
   }
@@ -35,4 +36,3 @@ export function AdminTopbar() {
     </header>
   );
 }
-

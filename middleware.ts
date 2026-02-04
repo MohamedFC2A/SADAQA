@@ -4,6 +4,7 @@ import { createSupabaseMiddlewareClient } from "@/lib/supabase/middleware";
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   const supabase = createSupabaseMiddlewareClient(request, response);
+  if (!supabase) return response;
 
   const {
     data: { user },
@@ -23,4 +24,3 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/admin/:path*"],
 };
-

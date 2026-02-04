@@ -23,6 +23,8 @@ export function Header() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+
     supabase.auth.getSession().then(({ data }) => {
       setIsAuthed(Boolean(data.session));
     });
@@ -34,6 +36,7 @@ export function Header() {
 
   async function handleLogout() {
     const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
     await supabase.auth.signOut();
     window.location.href = "/";
   }

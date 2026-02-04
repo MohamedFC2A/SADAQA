@@ -28,6 +28,14 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
 
     try {
       const supabase = createSupabaseBrowserClient();
+      if (!supabase) {
+        setState({
+          kind: "error",
+          message:
+            "Supabase غير مُعدّ على Vercel بعد. أضف متغيرات البيئة ثم أعد النشر.",
+        });
+        return;
+      }
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -87,4 +95,3 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
     </form>
   );
 }
-
