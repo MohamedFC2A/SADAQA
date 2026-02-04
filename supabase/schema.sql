@@ -3,16 +3,24 @@
 
 create extension if not exists pgcrypto;
 
--- Storage buckets (idempotent)
--- request-images: Private (served via signed URLs)
-insert into storage.buckets (id, name, public)
-values ('request-images', 'request-images', false)
-on conflict (id) do update set name = excluded.name, public = excluded.public;
+-- Storage buckets (best-effort, idempotent). If your SQL Editor role can't write
+-- to storage tables, this block will be skipped without stopping the rest.
+do $$
+begin
+  -- request-images: Private (served via signed URLs)
+  insert into storage.buckets (id, name, public)
+  values ('request-images', 'request-images', false)
+  on conflict (id) do update set name = excluded.name, public = excluded.public;
 
--- campaign-images: Public (public URLs for campaign cards)
-insert into storage.buckets (id, name, public)
-values ('campaign-images', 'campaign-images', true)
-on conflict (id) do update set name = excluded.name, public = excluded.public;
+  -- campaign-images: Public (public URLs for campaign cards)
+  insert into storage.buckets (id, name, public)
+  values ('campaign-images', 'campaign-images', true)
+  on conflict (id) do update set name = excluded.name, public = excluded.public;
+exception
+  when undefined_table then null;
+  when insufficient_privilege then null;
+  when others then null;
+end $$;
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -86,6 +94,15 @@ alter table public.donation_campaigns
 
 alter table public.donation_campaigns
   add column if not exists goal_amount integer not null default 10000;
+
+do $$
+begin
+  alter table public.donation_campaigns
+    add constraint donation_campaigns_goal_amount_nonnegative check (goal_amount >= 0);
+exception
+  when duplicate_object then null;
+  when others then null;
+end $$;
 
 -- campaign images bucket (create in Supabase Storage as PUBLIC):
 -- name: campaign-images

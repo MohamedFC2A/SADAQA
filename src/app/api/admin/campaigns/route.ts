@@ -43,7 +43,10 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !data?.id) {
-      return NextResponse.json({ error: "DB_INSERT_FAILED" }, { status: 500 });
+      return NextResponse.json(
+        { error: "DB_INSERT_FAILED", message: error?.message ?? null },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ id: data.id }, { status: 201 });

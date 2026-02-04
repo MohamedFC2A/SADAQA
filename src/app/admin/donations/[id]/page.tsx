@@ -40,9 +40,16 @@ export default async function AdminDonationDetailsPage({
         <Card className="p-6 space-y-2">
           <div className="text-xl font-semibold">تعذر تحميل التبرع</div>
           <div className="text-sm text-black/70 dark:text-white/70">
-            غالباً قاعدة البيانات غير مُحدّثة. شغّل ملف{" "}
+            {error?.message ? (
+              <>
+                الخطأ: <span className="font-mono">{error.message}</span>
+                <div className="mt-2" />
+              </>
+            ) : null}
+            غالباً قاعدة البيانات غير مُحدّثة أو مفاتيح Supabase على Vercel تشير
+            لمشروع مختلف. شغّل{" "}
             <span className="font-mono">supabase/schema.sql</span> داخل Supabase
-            SQL Editor ثم أعد المحاولة.
+            SQL Editor للمشروع الصحيح ثم أعد المحاولة.
           </div>
         </Card>
       </div>

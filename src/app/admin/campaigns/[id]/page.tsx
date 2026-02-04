@@ -35,15 +35,82 @@ export default async function AdminCampaignDetailsPage({
     .eq("id", params.id)
     .single();
 
-  if (error || !data) {
+  const schemaOutdated =
+    error?.message?.includes('column "image_url"') ||
+    error?.message?.includes('column "goal_amount"');
+
+  const { data: fallbackData, error: fallbackError } = schemaOutdated
+    ? await supabase
+        .from("donation_campaigns")
+        .select(
+          "id,slug,title,description,currency,min_amount,max_amount,starts_on,ends_on,is_active",
+        )
+        .eq("id", params.id)
+        .single()
+    : { data: null as unknown, error: null as unknown };
+
+  const raw = (schemaOutdated ? fallbackData : data) as unknown;
+  const rawError = (schemaOutdated ? fallbackError : error) as unknown;
+  const rawObj =
+    raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
+
+  const finalData: CampaignRow | null = rawObj
+    ? {
+        id: String(rawObj["id"] ?? ""),
+        slug: String(rawObj["slug"] ?? ""),
+        title: String(rawObj["title"] ?? ""),
+        description:
+          typeof rawObj["description"] === "string"
+            ? rawObj["description"]
+            : null,
+        image_url:
+          typeof rawObj["image_url"] === "string" ? rawObj["image_url"] : null,
+        currency: String(rawObj["currency"] ?? "EGP"),
+        min_amount: Number(rawObj["min_amount"] ?? 10),
+        max_amount: Number(rawObj["max_amount"] ?? 100),
+        goal_amount: Number(rawObj["goal_amount"] ?? 10000),
+        starts_on:
+          typeof rawObj["starts_on"] === "string" ? rawObj["starts_on"] : null,
+        ends_on:
+          typeof rawObj["ends_on"] === "string" ? rawObj["ends_on"] : null,
+        is_active: Boolean(rawObj["is_active"]),
+      }
+    : null;
+
+  if (!finalData) {
     return (
       <div className="mx-auto max-w-3xl space-y-4">
         <Card className="p-6 space-y-2">
           <div className="text-xl font-semibold">تعذر تحميل الحملة</div>
           <div className="text-sm text-black/70 dark:text-white/70">
-            غالباً قاعدة البيانات غير مُحدّثة. شغّل ملف{" "}
-            <span className="font-mono">supabase/schema.sql</span> داخل Supabase
-            SQL Editor ثم أعد المحاولة.
+            {schemaOutdated ? (
+              <>
+                قاعدة البيانات ناقصة أعمدة. الخطأ:{" "}
+                <span className="font-mono">{error?.message}</span>
+                <div className="mt-2">
+                  شغّل <span className="font-mono">supabase/schema.sql</span>{" "}
+                  داخل Supabase SQL Editor ثم أعد المحاولة.
+                </div>
+              </>
+            ) : (
+              <>
+                {rawError && typeof rawError === "object" && "message" in rawError ? (
+                  <>
+                    خطأ:{" "}
+                    <span className="font-mono">
+                      {(() => {
+                        const obj = rawError as Record<string, unknown>;
+                        return typeof obj["message"] === "string"
+                          ? obj["message"]
+                          : "Unknown error";
+                      })()}
+                    </span>
+                  </>
+                ) : (
+                  <>لم يتم العثور على الحملة.</>
+                )}
+              </>
+            )}
           </div>
         </Card>
       </div>
@@ -59,7 +126,14 @@ export default async function AdminCampaignDetailsPage({
         </div>
       </div>
       <Card className="p-6">
-        <CampaignEditor campaign={data as CampaignRow} />
+        <CampaignEditor campaign={finalData} />
+        {schemaOutdated ? (
+          <div className="mt-4 rounded-xl border border-pal-gold/30 bg-pal-gold/10 p-3 text-xs text-black/70 dark:text-white/70">
+            قاعدة البيانات ناقصة أعمدة (مثل <span className="font-mono">image_url</span>{" "}
+            أو <span className="font-mono">goal_amount</span>). شغّل{" "}
+            <span className="font-mono">supabase/schema.sql</span> داخل Supabase SQL Editor.
+          </div>
+        ) : null}
       </Card>
     </div>
   );

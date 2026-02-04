@@ -11,7 +11,12 @@ export function CampaignActions({ id }: { id: string }) {
     if (!ok) return;
     const res = await fetch(`/api/admin/campaigns/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      alert("تعذر حذف الحملة.");
+      const data = (await res.json().catch(() => null)) as unknown;
+      const msg =
+        data && typeof data === "object"
+          ? (data as Record<string, unknown>)["message"]
+          : null;
+      alert(`تعذر حذف الحملة.${typeof msg === "string" ? `\n${msg}` : ""}`);
       return;
     }
     router.refresh();
@@ -35,4 +40,3 @@ export function CampaignActions({ id }: { id: string }) {
     </div>
   );
 }
-

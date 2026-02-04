@@ -36,7 +36,10 @@ export async function PATCH(
     const admin = createSupabaseAdminClient();
     const { error } = await admin.from("donations").update(parsed.data).eq("id", id);
     if (error) {
-      return NextResponse.json({ error: "DB_UPDATE_FAILED" }, { status: 500 });
+      return NextResponse.json(
+        { error: "DB_UPDATE_FAILED", message: error.message },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ ok: true });
@@ -64,7 +67,10 @@ export async function DELETE(
     const admin = createSupabaseAdminClient();
     const { error } = await admin.from("donations").delete().eq("id", id);
     if (error) {
-      return NextResponse.json({ error: "DB_DELETE_FAILED" }, { status: 500 });
+      return NextResponse.json(
+        { error: "DB_DELETE_FAILED", message: error.message },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ ok: true });

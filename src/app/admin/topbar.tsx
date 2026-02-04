@@ -44,6 +44,12 @@ export function AdminTopbar() {
           >
             الحملات
           </Link>
+          <Link
+            href="/admin/debug"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            تشخيص
+          </Link>
           <Button variant="secondary" onClick={logout}>
             تسجيل خروج
           </Button>

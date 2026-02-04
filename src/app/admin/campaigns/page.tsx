@@ -6,28 +6,38 @@ import { Badge } from "@/components/ui/badge";
 import { CampaignCreator } from "@/app/admin/campaigns/campaign-creator";
 import { CampaignActions } from "@/app/admin/campaigns/campaign-actions";
 
-type CampaignRow = {
-  id: string;
-  slug: string;
-  title: string;
-  is_active: boolean;
-  min_amount: number;
-  max_amount: number;
-  goal_amount: number;
-  currency: string;
-};
-
 export default async function AdminCampaignsPage() {
   const { isAdmin } = await requireAdmin();
   if (!isAdmin) return null;
 
   const supabase = createSupabaseAdminClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("donation_campaigns")
     .select("id,slug,title,is_active,min_amount,max_amount,goal_amount,currency")
     .order("created_at", { ascending: true });
 
-  const rows = (data ?? []) as CampaignRow[];
+  // Backward compatibility if the DB wasn't migrated yet.
+  const fallback =
+    error?.message?.includes('column "goal_amount"') ||
+    error?.message?.includes('column "image_url"');
+  const { data: dataFallback } = fallback
+    ? await supabase
+        .from("donation_campaigns")
+        .select("id,slug,title,is_active,min_amount,max_amount,currency")
+        .order("created_at", { ascending: true })
+    : { data: null as unknown };
+
+  const rawList = (fallback ? dataFallback : data) ?? [];
+  const rows = (rawList as Array<Record<string, unknown>>).map((c) => ({
+    id: String(c["id"] ?? ""),
+    slug: String(c["slug"] ?? ""),
+    title: String(c["title"] ?? ""),
+    is_active: Boolean(c["is_active"]),
+    min_amount: Number(c["min_amount"] ?? 10),
+    max_amount: Number(c["max_amount"] ?? 100),
+    currency: String(c["currency"] ?? "EGP"),
+    goal_amount: Number(c["goal_amount"] ?? 10000),
+  }));
 
   return (
     <div className="space-y-6">
@@ -35,6 +45,17 @@ export default async function AdminCampaignsPage() {
         <h1 className="text-3xl font-semibold">حملات التبرع</h1>
         <Badge tone="neutral">إدارة الحملات</Badge>
       </div>
+
+      {error ? (
+        <Card className="p-4 border border-pal-gold/30 bg-pal-gold/10">
+          <div className="text-sm font-semibold">تنبيه</div>
+          <div className="text-xs text-black/70 dark:text-white/70">
+            يوجد خطأ في قاعدة البيانات:{" "}
+            <span className="font-mono">{error.message}</span>. إذا كان السبب
+            أعمدة ناقصة، شغّل <span className="font-mono">supabase/schema.sql</span>.
+          </div>
+        </Card>
+      ) : null}
 
       <Card className="p-6">
         <CampaignCreator />

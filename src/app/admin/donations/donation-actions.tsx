@@ -11,7 +11,12 @@ export function DonationActions({ id }: { id: string }) {
     if (!ok) return;
     const res = await fetch(`/api/admin/donations/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      alert("تعذر حذف التبرع.");
+      const data = (await res.json().catch(() => null)) as unknown;
+      const msg =
+        data && typeof data === "object"
+          ? (data as Record<string, unknown>)["message"]
+          : null;
+      alert(`تعذر حذف التبرع.${typeof msg === "string" ? `\n${msg}` : ""}`);
       return;
     }
     router.refresh();
@@ -35,4 +40,3 @@ export function DonationActions({ id }: { id: string }) {
     </div>
   );
 }
-

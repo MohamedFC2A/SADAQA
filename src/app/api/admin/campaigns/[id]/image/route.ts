@@ -54,7 +54,10 @@ export async function POST(
       .upload(path, bytes, { contentType: file.type, upsert: true });
 
     if (uploadError) {
-      return NextResponse.json({ error: "UPLOAD_FAILED" }, { status: 500 });
+      return NextResponse.json(
+        { error: "UPLOAD_FAILED", message: uploadError.message },
+        { status: 500 },
+      );
     }
 
     const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(path);
@@ -66,7 +69,10 @@ export async function POST(
       .eq("id", id);
 
     if (updateError) {
-      return NextResponse.json({ error: "DB_UPDATE_FAILED" }, { status: 500 });
+      return NextResponse.json(
+        { error: "DB_UPDATE_FAILED", message: updateError.message },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ ok: true, image_url: url });

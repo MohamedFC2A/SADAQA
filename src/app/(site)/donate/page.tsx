@@ -2,6 +2,7 @@ import Image from "next/image";
 import { DonateCampaign } from "@/app/(site)/donate/donate-campaign";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { DonationCampaign as Campaign } from "@/lib/donations/types";
+import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ async function DonationsContent({
 }: {
   supabase: ReturnType<typeof createSupabaseAdminClient>;
 }) {
-  const { data: campaigns } = await supabase
+  const { data: campaigns, error } = await supabase
     .from("donation_campaigns")
     .select(
       "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,starts_on,ends_on,is_active",
@@ -55,7 +56,35 @@ async function DonationsContent({
     .eq("is_active", true)
     .order("created_at", { ascending: true });
 
-  const list = (campaigns ?? []) as Campaign[];
+  const schemaOutdated =
+    error?.message?.includes('column "image_url"') ||
+    error?.message?.includes('column "goal_amount"');
+
+  const { data: campaignsFallback } = schemaOutdated
+    ? await supabase
+        .from("donation_campaigns")
+        .select(
+          "id,slug,title,description,currency,min_amount,max_amount,starts_on,ends_on,is_active",
+        )
+        .eq("is_active", true)
+        .order("created_at", { ascending: true })
+    : { data: null as unknown };
+
+  const raw = (schemaOutdated ? campaignsFallback : campaigns) ?? [];
+  const list = (raw as Array<Record<string, unknown>>).map((c) => ({
+    id: String(c["id"] ?? ""),
+    slug: String(c["slug"] ?? ""),
+    title: String(c["title"] ?? ""),
+    description: typeof c["description"] === "string" ? c["description"] : null,
+    image_url: typeof c["image_url"] === "string" ? c["image_url"] : null,
+    currency: String(c["currency"] ?? "EGP"),
+    min_amount: Number(c["min_amount"] ?? 10),
+    max_amount: Number(c["max_amount"] ?? 100),
+    goal_amount: Number(c["goal_amount"] ?? 10000),
+    starts_on: typeof c["starts_on"] === "string" ? c["starts_on"] : null,
+    ends_on: typeof c["ends_on"] === "string" ? c["ends_on"] : null,
+    is_active: Boolean(c["is_active"]),
+  })) as Campaign[];
   const ids = list.map((c) => c.id);
 
   const totals = new Map<string, number>();
@@ -75,8 +104,23 @@ async function DonationsContent({
 
   return (
     <div className="space-y-8">
+      {error ? (
+        <Card className="p-4 border border-pal-gold/30 bg-pal-gold/10">
+          <div className="text-sm font-semibold">تنبيه</div>
+          <div className="text-xs text-black/70 dark:text-white/70">
+            يوجد خطأ في قاعدة البيانات:{" "}
+            <span className="font-mono">{error.message}</span>. إذا كان السبب
+            أعمدة ناقصة، شغّل <span className="font-mono">supabase/schema.sql</span>.
+          </div>
+        </Card>
+      ) : null}
+
       {list.map((c) => (
-        <DonateCampaign key={c.id} campaign={c} totalDonated={totals.get(c.id) ?? 0} />
+        <DonateCampaign
+          key={c.id}
+          campaign={c}
+          totalDonated={totals.get(c.id) ?? 0}
+        />
       ))}
     </div>
   );
