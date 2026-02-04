@@ -57,20 +57,24 @@ create table if not exists public.donation_campaigns (
   slug text not null unique,
   title text not null,
   description text,
-  image_url text,
   currency text not null default 'EGP',
   min_amount integer not null default 10,
   max_amount integer not null default 100,
-  goal_amount integer not null default 10000,
   starts_on date,
   ends_on date,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (min_amount > 0),
-  check (max_amount >= min_amount),
-  check (goal_amount >= 0)
+  check (max_amount >= min_amount)
 );
+
+-- Backfill/migrate for existing projects (create table if not exists doesn't add columns)
+alter table public.donation_campaigns
+  add column if not exists image_url text;
+
+alter table public.donation_campaigns
+  add column if not exists goal_amount integer not null default 10000;
 
 create table if not exists public.donations (
   id uuid primary key default gen_random_uuid(),
