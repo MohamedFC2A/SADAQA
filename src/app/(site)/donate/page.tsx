@@ -89,15 +89,30 @@ async function DonationsContent({
 
   const totals = new Map<string, number>();
   if (ids.length > 0) {
-    const { data: donations } = await supabase
+    const { data: donations, error: donationsError } = await supabase
       .from("donations")
-      .select("campaign_id,amount")
+      .select("campaign_id,amount,status")
       .in("campaign_id", ids);
 
-    for (const row of (donations ?? []) as Array<{
+    const missingStatus =
+      donationsError?.message?.includes('column "status"') ||
+      donationsError?.message?.includes("status does not exist");
+
+    const donationsFallback = missingStatus
+      ? await supabase
+          .from("donations")
+          .select("campaign_id,amount")
+          .in("campaign_id", ids)
+      : null;
+
+    const rows = (missingStatus ? donationsFallback?.data : donations) ?? [];
+
+    for (const row of rows as Array<{
       campaign_id: string;
       amount: number;
+      status?: string | null;
     }>) {
+      if (!missingStatus && row.status && row.status !== "verified") continue;
       totals.set(row.campaign_id, (totals.get(row.campaign_id) ?? 0) + row.amount);
     }
   }
@@ -115,13 +130,15 @@ async function DonationsContent({
         </Card>
       ) : null}
 
-      {list.map((c) => (
-        <DonateCampaign
-          key={c.id}
-          campaign={c}
-          totalDonated={totals.get(c.id) ?? 0}
-        />
-      ))}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((c) => (
+          <DonateCampaign
+            key={c.id}
+            campaign={c}
+            totalDonated={totals.get(c.id) ?? 0}
+          />
+        ))}
+      </div>
     </div>
   );
 }

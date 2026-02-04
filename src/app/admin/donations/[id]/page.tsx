@@ -10,6 +10,9 @@ type DonationRow = {
   donor_name: string | null;
   phone: string | null;
   campaign_id: string;
+  payment_code?: string | null;
+  payment_method?: string | null;
+  status?: string | null;
   created_at: string;
 };
 
@@ -32,7 +35,9 @@ export default async function AdminDonationDetailsPage({
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("donations")
-    .select("id,amount,currency,donor_name,phone,campaign_id,created_at")
+    .select(
+      "id,amount,currency,donor_name,phone,campaign_id,payment_code,payment_method,status,created_at",
+    )
     .eq("id", id)
     .single();
 

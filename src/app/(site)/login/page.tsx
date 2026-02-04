@@ -10,11 +10,15 @@ export default function LoginPage({
 
   return (
     <div className="mx-auto max-w-md space-y-6">
-      <h1 className="text-3xl font-semibold">تسجيل الدخول</h1>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold">تسجيل الدخول</h1>
+        <p className="text-black/70 dark:text-white/70">
+          سجّل الدخول للوصول للوحة الإدارة.
+        </p>
+      </div>
       <Card className="p-6">
         <LoginForm nextPath={next} />
       </Card>
     </div>
   );
 }
-

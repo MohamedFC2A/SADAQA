@@ -14,6 +14,9 @@ type DonationRow = {
   donor_name: string | null;
   phone: string | null;
   campaign_id: string;
+  payment_code?: string | null;
+  payment_method?: string | null;
+  status?: string | null;
   created_at: string;
 };
 
@@ -24,6 +27,17 @@ type State =
   | { kind: "saving" }
   | { kind: "saved" }
   | { kind: "error"; message: string };
+
+const paymentMethods = [
+  "vodafone_cash",
+  "bank_transfer",
+  "whatsapp",
+  "fawry",
+  "instapay",
+  "other",
+] as const;
+
+const statuses = ["pending", "verified", "canceled", "proof_sent"] as const;
 
 export function DonationEditor({
   donation,
@@ -37,6 +51,10 @@ export function DonationEditor({
   const [donorName, setDonorName] = useState(donation.donor_name ?? "");
   const [phone, setPhone] = useState(donation.phone ?? "");
   const [campaignId, setCampaignId] = useState(donation.campaign_id);
+  const [paymentMethod, setPaymentMethod] = useState(
+    donation.payment_method ?? "",
+  );
+  const [status, setStatus] = useState(donation.status ?? "pending");
   const [state, setState] = useState<State>({ kind: "idle" });
 
   const changed = useMemo(() => {
@@ -44,9 +62,19 @@ export function DonationEditor({
       amount !== donation.amount ||
       donorName !== (donation.donor_name ?? "") ||
       phone !== (donation.phone ?? "") ||
-      campaignId !== donation.campaign_id
+      campaignId !== donation.campaign_id ||
+      paymentMethod !== (donation.payment_method ?? "") ||
+      status !== (donation.status ?? "pending")
     );
-  }, [amount, donorName, phone, campaignId, donation]);
+  }, [amount, donorName, phone, campaignId, paymentMethod, status, donation]);
+
+  async function copy(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // ignore
+    }
+  }
 
   async function save() {
     setState({ kind: "saving" });
@@ -59,6 +87,8 @@ export function DonationEditor({
           donor_name: donorName.trim() ? donorName.trim() : null,
           phone: phone.trim() ? phone.trim() : null,
           campaign_id: campaignId,
+          payment_method: paymentMethod.trim() ? paymentMethod.trim() : null,
+          status,
         }),
       });
       if (!res.ok) {
@@ -100,6 +130,28 @@ export function DonationEditor({
         </button>
       </div>
 
+      {donation.payment_code ? (
+        <div className="rounded-2xl border border-black/10 bg-black/5 p-4 dark:border-white/10 dark:bg-white/10">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold text-black/60 dark:text-white/60">
+                كود الدفع
+              </div>
+              <div className="mt-1 font-mono text-lg font-bold">
+                {donation.payment_code}
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => copy(donation.payment_code ?? "")}
+            >
+              نسخ الكود
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-semibold">القيمة</label>
@@ -138,6 +190,31 @@ export function DonationEditor({
             inputMode="tel"
           />
         </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-semibold">طريقة الدفع</label>
+          <Select
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+          >
+            <option value="">—</option>
+            {paymentMethods.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold">الحالة</label>
+          <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            {statuses.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -167,4 +244,3 @@ export function DonationEditor({
     </div>
   );
 }
-

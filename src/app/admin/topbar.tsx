@@ -14,7 +14,7 @@ export function AdminTopbar() {
   }
 
   return (
-    <header className="border-b border-black/10 bg-white dark:border-white/10 dark:bg-black">
+    <header className="sticky top-0 z-50 border-b border-black/10 bg-white/70 backdrop-blur dark:border-white/10 dark:bg-black/40">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-3">

@@ -134,6 +134,46 @@ create table if not exists public.donations (
   created_at timestamptz not null default now()
 );
 
+-- Backfill/migrate for existing projects (create table if not exists doesn't add columns)
+alter table public.donations
+  add column if not exists payment_code text;
+
+alter table public.donations
+  add column if not exists payment_method text;
+
+alter table public.donations
+  add column if not exists status text not null default 'pending';
+
+alter table public.donations
+  add column if not exists updated_at timestamptz not null default now();
+
+-- Constraints + indexes (idempotent)
+do $$
+begin
+  alter table public.donations
+    add constraint donations_status_valid
+    check (status in ('pending','verified','canceled','proof_sent'));
+exception
+  when duplicate_object then null;
+  when others then null;
+end $$;
+
+do $$
+begin
+  alter table public.donations
+    add constraint donations_payment_method_valid
+    check (
+      payment_method is null
+      or payment_method in ('vodafone_cash','bank_transfer','whatsapp','fawry','instapay','other')
+    );
+exception
+  when duplicate_object then null;
+  when others then null;
+end $$;
+
+create unique index if not exists donations_payment_code_key
+  on public.donations(payment_code);
+
 -- RLS (fix Supabase linter: rls_disabled_in_public)
 alter table public.profiles enable row level security;
 alter table public.requests enable row level security;
@@ -207,6 +247,11 @@ for each row execute function public.set_updated_at();
 drop trigger if exists trg_campaigns_updated_at on public.donation_campaigns;
 create trigger trg_campaigns_updated_at
 before update on public.donation_campaigns
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_donations_updated_at on public.donations;
+create trigger trg_donations_updated_at
+before update on public.donations
 for each row execute function public.set_updated_at();
 
 -- Seed: first real donation campaign (10-100 EGP) "إطعام المساكين" من 2/10 حتى رمضان

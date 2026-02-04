@@ -13,6 +13,18 @@ const patchSchema = z.object({
   donor_name: z.string().trim().min(2).max(80).nullable().optional(),
   phone: z.string().trim().min(8).max(20).nullable().optional(),
   campaign_id: z.string().uuid().optional(),
+  payment_method: z
+    .enum([
+      "vodafone_cash",
+      "bank_transfer",
+      "whatsapp",
+      "fawry",
+      "instapay",
+      "other",
+    ])
+    .nullable()
+    .optional(),
+  status: z.enum(["pending", "verified", "canceled", "proof_sent"]).optional(),
 });
 
 export async function PATCH(

@@ -23,15 +23,16 @@ const highlights = [
 export default function HomePage() {
   return (
     <div className="space-y-12">
-      <section className="rounded-2xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-black">
-        <div className="flex flex-col gap-6">
+      <section className="relative overflow-hidden rounded-3xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-black">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,153,84,.16),transparent_55%),radial-gradient(circle_at_top_left,rgba(212,175,55,.18),transparent_55%),radial-gradient(circle_at_bottom,rgba(228,49,43,.12),transparent_55%)]" />
+        <div className="relative flex flex-col gap-6">
           <div className="inline-flex items-center gap-3">
             <div className="h-3 w-3 rounded-full bg-pal-red" />
             <div className="h-3 w-3 rounded-full bg-pal-black dark:bg-white" />
             <div className="h-3 w-3 rounded-full bg-pal-green" />
             <div className="h-3 w-3 rounded-full bg-pal-gold" />
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
             SADAQA — منصة التبرعات وطلبات المساعدة
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-black/70 dark:text-white/70">

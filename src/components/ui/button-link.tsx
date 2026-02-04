@@ -25,7 +25,7 @@ export function ButtonLink({
   return (
     <Link
       className={cn(
-        "inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors",
+        "inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pal-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         variantClasses[variant],
         className,
       )}
@@ -33,4 +33,3 @@ export function ButtonLink({
     />
   );
 }
-

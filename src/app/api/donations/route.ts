@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { generatePaymentCode } from "@/lib/donations/payment-code";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,9 @@ const schema = z.object({
   amount: z.number().int().positive(),
   donorName: z.string().trim().min(2).max(80).optional(),
   phone: z.string().trim().min(8).max(20).optional(),
+  paymentMethod: z
+    .enum(["vodafone_cash", "bank_transfer", "whatsapp", "other"])
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -46,23 +50,55 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: inserted, error: insertError } = await supabase
-      .from("donations")
-      .insert({
-        campaign_id: campaign.id,
-        amount: parsed.data.amount,
-        currency: campaign.currency,
-        donor_name: parsed.data.donorName ?? null,
-        phone: parsed.data.phone ?? null,
-      })
-      .select("id")
-      .single();
+    let lastInsertError: { message?: string | null } | null = null;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const paymentCode = generatePaymentCode();
+      const { data: inserted, error: insertError } = await supabase
+        .from("donations")
+        .insert({
+          campaign_id: campaign.id,
+          amount: parsed.data.amount,
+          currency: campaign.currency,
+          donor_name: parsed.data.donorName ?? null,
+          phone: parsed.data.phone ?? null,
+          payment_code: paymentCode,
+          payment_method: parsed.data.paymentMethod ?? null,
+          status: "pending",
+        })
+        .select("id,payment_code")
+        .single();
 
-    if (insertError || !inserted?.id) {
-      return NextResponse.json({ error: "DB_INSERT_FAILED" }, { status: 500 });
+      if (!insertError && inserted?.id && inserted.payment_code) {
+        return NextResponse.json(
+          { id: inserted.id, paymentCode: inserted.payment_code },
+          { status: 201 },
+        );
+      }
+
+      lastInsertError = insertError;
+      const msg = insertError?.message?.toLowerCase() ?? "";
+      const isUniqueViolation =
+        msg.includes("duplicate") ||
+        msg.includes("unique") ||
+        msg.includes("donations_payment_code_key");
+
+      if (!isUniqueViolation) break;
     }
 
-    return NextResponse.json({ id: inserted.id }, { status: 201 });
+    const message = lastInsertError?.message ?? null;
+    const schemaOutdated =
+      typeof message === "string" &&
+      (message.includes('column "payment_code"') ||
+        message.includes('column "payment_method"') ||
+        message.includes('column "status"'));
+
+    return NextResponse.json(
+      {
+        error: schemaOutdated ? "SCHEMA_OUTDATED" : "DB_INSERT_FAILED",
+        message,
+      },
+      { status: 500 },
+    );
   } catch (e) {
     const errorId = randomUUID();
     console.error("[POST /api/donations]", { errorId, e });
@@ -72,4 +108,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

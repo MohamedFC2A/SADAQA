@@ -12,6 +12,9 @@ type DonationRow = {
   currency: string;
   donor_name: string | null;
   phone: string | null;
+  payment_code?: string | null;
+  payment_method?: string | null;
+  status?: string | null;
   created_at: string;
   donation_campaigns?: { title?: string | null } | null;
 };
@@ -30,7 +33,7 @@ export default async function AdminDonationsPage() {
   const { data, error } = await supabase
     .from("donations")
     .select(
-      "id,amount,currency,donor_name,phone,created_at,donation_campaigns(title)",
+      "id,amount,currency,donor_name,phone,payment_code,payment_method,status,created_at,donation_campaigns(title)",
     )
     .order("created_at", { ascending: false })
     .limit(50);
@@ -69,6 +72,12 @@ export default async function AdminDonationsPage() {
                 <tr>
                   <th className="px-4 py-3 text-right font-semibold">الحملة</th>
                   <th className="px-4 py-3 text-right font-semibold">القيمة</th>
+                  <th className="px-4 py-3 text-right font-semibold">
+                    كود الدفع
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold">
+                    الطريقة/الحالة
+                  </th>
                   <th className="px-4 py-3 text-right font-semibold">الاسم</th>
                   <th className="px-4 py-3 text-right font-semibold">الهاتف</th>
                   <th className="px-4 py-3 text-right font-semibold">التاريخ</th>
@@ -96,6 +105,19 @@ export default async function AdminDonationsPage() {
                       <span className="text-black/60 dark:text-white/60">
                         {r.currency}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-black/70 dark:text-white/70">
+                      {r.payment_code ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                      <div className="flex flex-col gap-1">
+                        <div className="text-xs">
+                          {r.payment_method ?? "—"}
+                        </div>
+                        <div className="text-xs font-semibold">
+                          {r.status ?? "—"}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-black/70 dark:text-white/70">
                       {r.donor_name ?? "—"}
