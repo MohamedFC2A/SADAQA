@@ -12,7 +12,7 @@ export default function DonatePage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl border border-black/10 bg-black p-8 shadow-sm dark:border-white/10">
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-black p-8 shadow-sm">
         <Image
           src="/images/donate-hero.jpg"
           alt="تبرعات الطعام"

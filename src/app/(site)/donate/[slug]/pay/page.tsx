@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { notFound } from "next/navigation";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
+import { ButtonLink } from "@/components/ui/button-link";
 import { DonationCheckout } from "@/app/(site)/donate/[slug]/pay/donation-checkout";
 
 export const dynamic = "force-dynamic";
@@ -12,16 +13,110 @@ export default async function DonatePayPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const supabase = createSupabaseAdminClient();
+  const supabase = await createSupabaseServerClient();
+
   const { data, error } = await supabase
     .from("donation_campaigns")
     .select(
       "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,is_active",
     )
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
 
-  if (error || !data || !data.is_active) notFound();
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card className="space-y-2 border border-pal-gold/30 bg-pal-gold/10 p-6">
+          <div className="text-lg font-semibold">تعذر تحميل صفحة الدفع</div>
+          <div className="text-sm text-muted-foreground">
+            يوجد خطأ في الاتصال بقاعدة البيانات:{" "}
+            <span className="font-mono">{error.message}</span>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <ButtonLink href="/donate" variant="secondary">
+              الرجوع لصفحة التبرعات
+            </ButtonLink>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!data) {
+    const { data: candidates, error: candidatesError } = await supabase
+      .from("donation_campaigns")
+      .select(
+        "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,is_active",
+      )
+      .ilike("title", `%${slug}%`)
+      .limit(6);
+
+    if (candidatesError) {
+      return (
+        <div className="space-y-6">
+          <Card className="space-y-2 border border-pal-gold/30 bg-pal-gold/10 p-6">
+            <div className="text-lg font-semibold">تعذر تحميل صفحة الدفع</div>
+            <div className="text-sm text-muted-foreground">
+              حدث خطأ أثناء البحث عن الحملة:{" "}
+              <span className="font-mono">{candidatesError.message}</span>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <ButtonLink href="/donate" variant="secondary">
+                الرجوع لصفحة التبرعات
+              </ButtonLink>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    const list = (candidates ?? []).filter(
+      (x): x is NonNullable<typeof x> => Boolean(x),
+    );
+
+    if (list.length === 1) {
+      redirect(`/donate/${encodeURIComponent(String(list[0].slug))}/pay`);
+    }
+
+    return (
+      <div className="space-y-6">
+        <Card className="space-y-3 p-6">
+          <div className="text-xl font-semibold">الحملة غير موجودة</div>
+          <p className="text-sm leading-7 text-muted-foreground">
+            لم نعثر على حملة بعنوان/Slug مطابق لـ{" "}
+            <span className="font-mono">{slug}</span>.
+          </p>
+
+          {list.length > 1 ? (
+            <div className="space-y-2">
+              <div className="text-sm font-semibold">هل تقصد واحدة من هذه؟</div>
+              <div className="flex flex-col gap-2">
+                {list.map((c) => (
+                  <ButtonLink
+                    key={String(c.id)}
+                    href={`/donate/${encodeURIComponent(String(c.slug))}/pay`}
+                    variant="secondary"
+                    className="justify-between"
+                  >
+                    <span className="truncate">{String(c.title)}</span>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {String(c.slug)}
+                    </span>
+                  </ButtonLink>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap gap-2 pt-2">
+            <ButtonLink href="/donate" variant="primary">
+              عرض كل الحملات
+            </ButtonLink>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   const campaign = {
     id: String(data.id),

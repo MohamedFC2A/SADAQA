@@ -4,7 +4,7 @@ export function BrandMark({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl ring-1 ring-black/10 dark:ring-white/10",
+        "relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl ring-1 ring-border",
         className,
       )}
       aria-hidden
@@ -14,7 +14,7 @@ export function BrandMark({ className }: { className?: string }) {
         className="absolute inset-y-0 left-0 w-2/3 bg-pal-red"
         style={{ clipPath: "polygon(0 0, 0 100%, 100% 50%)" }}
       />
-      <div className="relative z-10 font-brand text-sm font-bold text-pal-black">
+      <div className="relative z-10 font-brand text-lg font-bold tracking-tight text-white mix-blend-difference drop-shadow-[0_1px_0_rgba(0,0,0,.35)]">
         M
       </div>
     </div>
