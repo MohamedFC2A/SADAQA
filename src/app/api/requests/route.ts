@@ -132,7 +132,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const requestId = inserted.id as string;
+    const requestId = finalInserted.id as string;
 
     const uploaded: Array<{ path: string; mime: string; size: number }> = [];
     for (const file of files) {
