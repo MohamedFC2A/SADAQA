@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { requestStatuses, urgencyLevels } from "@/lib/requests/constants";
+import { requestStatuses, requestTypes } from "@/lib/requests/constants";
 import { requireAdminApi } from "@/lib/auth/admin-guard";
 
 export const runtime = "nodejs";
@@ -11,14 +11,12 @@ const idSchema = z.string().uuid();
 
 const patchSchema = z.object({
   status: z.enum(requestStatuses).optional(),
-  urgency_level: z.enum(urgencyLevels).optional(),
+  urgency_level: z.literal("urgent").optional(),
   admin_notes: z.string().max(5000).optional(),
   requester_name: z.string().trim().min(2).max(80).optional(),
   phone: z.string().trim().min(8).max(20).optional(),
   location: z.string().trim().min(2).max(120).optional(),
-  request_type: z
-    .enum(["money", "food", "clothes", "medical", "education", "housing"])
-    .optional(),
+  request_type: z.enum(requestTypes).optional(),
   description: z.string().trim().min(20).max(2000).optional(),
 });
 

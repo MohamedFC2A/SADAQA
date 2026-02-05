@@ -28,7 +28,6 @@ export async function POST(request: Request) {
       location: form.get("location"),
       request_type: form.get("request_type"),
       description: form.get("description"),
-      urgency_level: form.get("urgency_level") ?? undefined,
     });
 
     if (!parsed.success) {
@@ -62,6 +61,14 @@ export async function POST(request: Request) {
       }
     }
 
+    // Enforce at least one medical document/photo for medical requests
+    if (parsed.data.request_type === "medical" && files.length === 0) {
+      return NextResponse.json(
+        { error: "IMAGE_REQUIRED", field: "images" },
+        { status: 400 },
+      );
+    }
+
     const supabase = createSupabaseAdminClient();
     const supabaseWithSession = await createSupabaseServerClient();
 
@@ -85,7 +92,7 @@ export async function POST(request: Request) {
       location: parsed.data.location,
       request_type: parsed.data.request_type,
       description: parsed.data.description,
-      urgency_level: parsed.data.urgency_level ?? "medium",
+      urgency_level: "urgent",
       images: [],
       status: "pending" as const,
       user_id: user?.id ?? null,

@@ -1,17 +1,8 @@
-export const requestTypes = [
-  "money",
-  "food",
-  "clothes",
-  "medical",
-  "education",
-  "housing",
-] as const;
+export const requestTypes = ["medical", "food", "housing"] as const;
 
 export type RequestType = (typeof requestTypes)[number];
 
-export const urgencyLevels = ["low", "medium", "high", "urgent"] as const;
-
-export type UrgencyLevel = (typeof urgencyLevels)[number];
+export type UrgencyLevel = "urgent";
 
 export const requestStatuses = [
   "pending",
@@ -23,18 +14,12 @@ export const requestStatuses = [
 export type RequestStatus = (typeof requestStatuses)[number];
 
 export const requestTypeLabelAr: Record<RequestType, string> = {
-  money: "مالي",
+  medical: "علاجي",
   food: "غذائي",
-  clothes: "ملابس",
-  medical: "علاج",
-  education: "تعليم",
-  housing: "سكن",
+  housing: "سكني",
 };
 
 export const urgencyLabelAr: Record<UrgencyLevel, string> = {
-  low: "منخفض",
-  medium: "متوسط",
-  high: "عالي",
   urgent: "عاجل",
 };
 
@@ -44,4 +29,3 @@ export const statusLabelAr: Record<RequestStatus, string> = {
   rejected: "مرفوض",
   completed: "مكتمل",
 };
-

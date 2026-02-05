@@ -6,10 +6,9 @@ describe("requestHelpSchema", () => {
     const parsed = requestHelpSchema.safeParse({
       requester_name: "أحمد محمد",
       phone: "0599999999",
-      location: "غزة",
+      location: "القاهرة - العنوان التفصيلي",
       request_type: "food",
-      description: "أحتاج مساعدة غذائية لعائلتي بسبب ظروف صعبة.",
-      urgency_level: "high",
+      description: "أحتاج مساعدة غذائية لعائلتي بسبب ظروف صعبة وتشمل سلة غذائية كاملة.",
     });
     expect(parsed.success).toBe(true);
   });
@@ -18,11 +17,10 @@ describe("requestHelpSchema", () => {
     const parsed = requestHelpSchema.safeParse({
       requester_name: "أحمد",
       phone: "0599999999",
-      location: "غزة",
+      location: "القاهرة - العنوان التفصيلي",
       request_type: "food",
       description: "قصير",
     });
     expect(parsed.success).toBe(false);
   });
 });
-

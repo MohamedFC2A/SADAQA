@@ -4,13 +4,10 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   requestStatuses,
-  urgencyLevels,
   requestTypes,
   statusLabelAr,
-  urgencyLabelAr,
   requestTypeLabelAr,
   type RequestStatus,
-  type UrgencyLevel,
   type RequestType,
 } from "@/lib/requests/constants";
 import { Button } from "@/components/ui/button";
@@ -27,7 +24,6 @@ type State =
 export function RequestEditor(props: {
   id: string;
   status: RequestStatus;
-  urgency_level: UrgencyLevel;
   admin_notes: string;
   requester_name?: string;
   phone?: string;
@@ -37,29 +33,26 @@ export function RequestEditor(props: {
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<RequestStatus>(props.status);
-  const [urgency, setUrgency] = useState<UrgencyLevel>(props.urgency_level);
   const [notes, setNotes] = useState(props.admin_notes);
   const [requesterName, setRequesterName] = useState(props.requester_name ?? "");
   const [phone, setPhone] = useState(props.phone ?? "");
   const [location, setLocation] = useState(props.location ?? "");
-  const [type, setType] = useState<RequestType>(props.request_type ?? "money");
+  const [type, setType] = useState<RequestType>(props.request_type ?? "food");
   const [description, setDescription] = useState(props.description ?? "");
   const [state, setState] = useState<State>({ kind: "idle" });
 
   const changed = useMemo(() => {
     return (
       status !== props.status ||
-      urgency !== props.urgency_level ||
       notes !== props.admin_notes ||
       requesterName !== (props.requester_name ?? "") ||
       phone !== (props.phone ?? "") ||
       location !== (props.location ?? "") ||
-      type !== (props.request_type ?? "money") ||
+      type !== (props.request_type ?? "food") ||
       description !== (props.description ?? "")
     );
   }, [
     status,
-    urgency,
     notes,
     requesterName,
     phone,
@@ -67,7 +60,6 @@ export function RequestEditor(props: {
     type,
     description,
     props.status,
-    props.urgency_level,
     props.admin_notes,
     props.requester_name,
     props.phone,
@@ -84,7 +76,6 @@ export function RequestEditor(props: {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           status,
-          urgency_level: urgency,
           admin_notes: notes,
           requester_name: requesterName,
           phone,
@@ -179,22 +170,6 @@ export function RequestEditor(props: {
           {requestStatuses.map((s) => (
             <option key={s} value={s}>
               {statusLabelAr[s]}
-            </option>
-          ))}
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-semibold">الأولوية</label>
-        <Select
-          value={urgency}
-          onChange={(e) =>
-            setUrgency(e.target.value as (typeof urgencyLevels)[number])
-          }
-        >
-          {urgencyLevels.map((u) => (
-            <option key={u} value={u}>
-              {urgencyLabelAr[u]}
             </option>
           ))}
         </Select>

@@ -4,13 +4,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   requestStatuses,
   requestTypes,
-  urgencyLevels,
   requestTypeLabelAr,
   statusLabelAr,
-  urgencyLabelAr,
   type RequestStatus,
   type RequestType,
-  type UrgencyLevel,
 } from "@/lib/requests/constants";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +20,6 @@ type RequestRow = {
   requester_name: string;
   location: string;
   request_type: RequestType;
-  urgency_level: UrgencyLevel;
   status: RequestStatus;
   created_at: string;
 };
@@ -34,21 +30,11 @@ function toneForStatus(status: RequestStatus): "neutral" | "success" | "danger" 
   return "neutral";
 }
 
-function toneForUrgency(
-  u: UrgencyLevel,
-): "neutral" | "warning" | "danger" {
-  if (u === "urgent") return "danger";
-  if (u === "high") return "warning";
-  if (u === "low") return "neutral";
-  return "neutral";
-}
-
 export default async function AdminRequestsPage({
   searchParams,
 }: {
   searchParams?: {
     status?: string;
-    urgency?: string;
     type?: string;
     page?: string;
   };
@@ -60,11 +46,6 @@ export default async function AdminRequestsPage({
     searchParams?.status &&
     requestStatuses.includes(searchParams.status as RequestStatus)
       ? (searchParams.status as RequestStatus)
-      : undefined;
-  const urgency =
-    searchParams?.urgency &&
-    urgencyLevels.includes(searchParams.urgency as UrgencyLevel)
-      ? (searchParams.urgency as UrgencyLevel)
       : undefined;
   const type =
     searchParams?.type && requestTypes.includes(searchParams.type as RequestType)
@@ -81,13 +62,13 @@ export default async function AdminRequestsPage({
     .from("requests")
     .select(
       "id,requester_name,location,request_type,urgency_level,status,created_at",
+      // urgency_level kept for legacy data; new الطلبات تُسجل كعاجل دائماً
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
     .range(from, to);
 
   if (status) query = query.eq("status", status);
-  if (urgency) query = query.eq("urgency_level", urgency);
   if (type) query = query.eq("request_type", type);
 
   const { data, error, count } = await query;
@@ -98,18 +79,15 @@ export default async function AdminRequestsPage({
   function buildUrl(
     next: Partial<{
       status: string;
-      urgency: string;
       type: string;
       page: string;
     }>,
   ) {
     const params = new URLSearchParams();
     const s = next.status ?? status;
-    const u = next.urgency ?? urgency;
     const t = next.type ?? type;
     const p = next.page ?? String(page);
     if (s) params.set("status", s);
-    if (u) params.set("urgency", u);
     if (t) params.set("type", t);
     if (p) params.set("page", p);
     return `/admin/requests?${params.toString()}`;
@@ -125,7 +103,7 @@ export default async function AdminRequestsPage({
       </div>
 
       <Card className="p-6">
-        <form className="grid grid-cols-1 gap-4 sm:grid-cols-4" method="GET">
+        <form className="grid grid-cols-1 gap-4 sm:grid-cols-3" method="GET">
           <div className="space-y-2">
             <label className="text-sm font-semibold">الحالة</label>
             <Select name="status" defaultValue={status ?? ""}>
@@ -133,17 +111,6 @@ export default async function AdminRequestsPage({
               {requestStatuses.map((s) => (
                 <option key={s} value={s}>
                   {statusLabelAr[s]}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">الأولوية</label>
-            <Select name="urgency" defaultValue={urgency ?? ""}>
-              <option value="">الكل</option>
-              {urgencyLevels.map((u) => (
-                <option key={u} value={u}>
-                  {urgencyLabelAr[u]}
                 </option>
               ))}
             </Select>
@@ -185,9 +152,6 @@ export default async function AdminRequestsPage({
                   </th>
                   <th className="px-4 py-3 text-right font-semibold">النوع</th>
                   <th className="px-4 py-3 text-right font-semibold">
-                    الأولوية
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold">
                     الحالة
                   </th>
                   <th className="px-4 py-3 text-right font-semibold">
@@ -216,11 +180,6 @@ export default async function AdminRequestsPage({
                       {r.location}
                     </td>
                     <td className="px-4 py-3">{requestTypeLabelAr[r.request_type]}</td>
-                    <td className="px-4 py-3">
-                      <Badge tone={toneForUrgency(r.urgency_level)}>
-                        {urgencyLabelAr[r.urgency_level]}
-                      </Badge>
-                    </td>
                     <td className="px-4 py-3">
                       <Badge tone={toneForStatus(r.status)}>
                         {statusLabelAr[r.status]}

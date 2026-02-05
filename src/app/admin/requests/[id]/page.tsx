@@ -4,10 +4,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   requestTypeLabelAr,
   statusLabelAr,
-  urgencyLabelAr,
   type RequestStatus,
   type RequestType,
-  type UrgencyLevel,
 } from "@/lib/requests/constants";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +22,6 @@ type RequestRow = {
   phone: string;
   location: string;
   request_type: RequestType;
-  urgency_level: UrgencyLevel;
   status: RequestStatus;
   description: string;
   admin_notes: string | null;
@@ -36,14 +33,6 @@ type RequestRow = {
 function toneForStatus(status: RequestStatus): "neutral" | "success" | "danger" {
   if (status === "approved" || status === "completed") return "success";
   if (status === "rejected") return "danger";
-  return "neutral";
-}
-
-function toneForUrgency(
-  u: UrgencyLevel,
-): "neutral" | "warning" | "danger" {
-  if (u === "urgent") return "danger";
-  if (u === "high") return "warning";
   return "neutral";
 }
 
@@ -109,9 +98,6 @@ export default async function AdminRequestDetailsPage({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge tone={toneForUrgency(row.urgency_level)}>
-            {urgencyLabelAr[row.urgency_level]}
-          </Badge>
           <Badge tone={toneForStatus(row.status)}>{statusLabelAr[row.status]}</Badge>
           <Badge tone="neutral">{requestTypeLabelAr[row.request_type]}</Badge>
         </div>
@@ -168,7 +154,6 @@ export default async function AdminRequestDetailsPage({
             <RequestEditor
               id={row.id}
               status={row.status}
-              urgency_level={row.urgency_level}
               admin_notes={row.admin_notes ?? ""}
               requester_name={row.requester_name}
               phone={row.phone}

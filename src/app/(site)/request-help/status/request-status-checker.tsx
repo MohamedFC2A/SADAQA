@@ -104,7 +104,8 @@ export function RequestStatusChecker({ initialId }: { initialId: string }) {
             <div>
               الإلحاح:{" "}
               <span className="font-semibold">
-                {urgencyLabelAr[state.data.urgency_level]}
+                {urgencyLabelAr[state.data.urgency_level] ??
+                  state.data.urgency_level}
               </span>
             </div>
             <div className="mt-2 text-xs text-black/60 dark:text-white/60">
@@ -116,4 +117,3 @@ export function RequestStatusChecker({ initialId }: { initialId: string }) {
     </div>
   );
 }
-

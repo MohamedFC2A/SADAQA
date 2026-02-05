@@ -5,10 +5,10 @@ export default function RequestHelpPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold">طلب مساعدة</h1>
+        <h1 className="text-3xl font-semibold">طلب مساعدة عاجلة</h1>
         <p className="text-black/70 dark:text-white/70">
-          اكتب تفاصيل الحالة بدقة. لن تُعرض بياناتك علناً، وسيتم التواصل معك من
-          فريق الإدارة.
+          عبئ البيانات بدقة لنوصل الدعم الصحيح بأسرع وقت. اسمك ورقمك يُسحبان من
+          حسابك عند تسجيل الدخول لضمان صحة التواصل، ولا تظهر للعلن.
         </p>
       </div>
       <Card className="p-6">
@@ -17,4 +17,3 @@ export default function RequestHelpPage() {
     </div>
   );
 }
-
