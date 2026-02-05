@@ -1,28 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import type { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { env } from "@/lib/env";
 
-export function createSupabaseRouteHandlerClient(
-  request: NextRequest,
-  response: NextResponse,
-) {
-  return createServerClient(env.supabaseUrl(), env.supabaseAnonKey(), {
+type CookieToSet = { name: string; value: string; options: Record<string, unknown> };
+
+export function createSupabaseRouteHandlerClient(request: NextRequest) {
+  const cookiesToSet: CookieToSet[] = [];
+
+  const supabase = createServerClient(env.supabaseUrl(), env.supabaseAnonKey(), {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+      setAll(nextCookiesToSet) {
+        nextCookiesToSet.forEach(({ name, value, options }) => {
+          cookiesToSet.push({ name, value, options: options as Record<string, unknown> });
         });
       },
     },
   });
-}
 
-export function copyResponseCookies(from: NextResponse, to: NextResponse) {
-  from.cookies.getAll().forEach((c) => {
-    to.cookies.set(c.name, c.value, c);
-  });
-}
+  function applyCookies(response: NextResponse) {
+    cookiesToSet.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options);
+    });
+  }
 
+  return { supabase, applyCookies };
+}

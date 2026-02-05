@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import type { NextRequest } from "next/server";
-import {
-  copyResponseCookies,
-  createSupabaseRouteHandlerClient,
-} from "@/lib/supabase/route-handler";
+import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
 
 export const runtime = "nodejs";
 
@@ -28,8 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const base = NextResponse.next();
-    const supabase = createSupabaseRouteHandlerClient(request, base);
+    const { supabase, applyCookies } = createSupabaseRouteHandlerClient(request);
 
     const origin = request.headers.get("origin") ?? undefined;
     const next = parsed.data.next && parsed.data.next.startsWith("/")
@@ -67,7 +63,7 @@ export async function POST(request: NextRequest) {
       ok: true,
       needsEmailConfirmation: !data.session,
     });
-    copyResponseCookies(base, out);
+    applyCookies(out);
     return out;
   } catch (e) {
     const errorId = randomUUID();

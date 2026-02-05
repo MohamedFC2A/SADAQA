@@ -29,6 +29,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email, password }),
       });

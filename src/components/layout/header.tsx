@@ -26,7 +26,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/me", { cache: "no-store" })
+    fetch("/api/me", { cache: "no-store", credentials: "include" })
       .then(async (res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || typeof data !== "object") return;
@@ -41,7 +41,7 @@ export function Header() {
   }, [pathname]);
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
     window.location.href = "/";
   }
 

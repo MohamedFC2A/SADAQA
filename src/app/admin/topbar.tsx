@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function AdminTopbar() {
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
     window.location.href = "/";
   }
 

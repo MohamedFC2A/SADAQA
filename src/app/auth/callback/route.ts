@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
 
 export const runtime = "nodejs";
 
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, url));
   }
 
-  const supabase = await createSupabaseServerClient();
+  const { supabase, applyCookies } = createSupabaseRouteHandlerClient(request);
   await supabase.auth.exchangeCodeForSession(code);
 
   const {
@@ -33,10 +33,14 @@ export async function GET(request: NextRequest) {
   const phone = typeof profile?.phone === "string" ? profile.phone.trim() : "";
 
   if (name.length < 2 || phone.length < 8) {
-    return NextResponse.redirect(
+    const res = NextResponse.redirect(
       new URL(`/onboarding?next=${encodeURIComponent(next)}`, url),
     );
+    applyCookies(res);
+    return res;
   }
 
-  return NextResponse.redirect(new URL(next, url));
+  const res = NextResponse.redirect(new URL(next, url));
+  applyCookies(res);
+  return res;
 }

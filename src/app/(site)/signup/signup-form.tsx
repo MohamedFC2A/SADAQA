@@ -46,6 +46,7 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
       const next = nextPath && nextPath.startsWith("/") ? nextPath : "/onboarding";
       const res = await fetch("/api/auth/signup", {
         method: "POST",
+        credentials: "include",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name: nameTrimmed,
