@@ -70,9 +70,23 @@ export default async function DonatePayPage({
       );
     }
 
-    const list = (candidates ?? []).filter(
+    let list = (candidates ?? []).filter(
       (x): x is NonNullable<typeof x> => Boolean(x),
     );
+
+    if (list.length === 0 && slug.includes("رمضان")) {
+      const { data: ramadanCandidates } = await supabase
+        .from("donation_campaigns")
+        .select(
+          "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,is_active",
+        )
+        .ilike("slug", "%ramadan%")
+        .limit(6);
+
+      list = (ramadanCandidates ?? []).filter(
+        (x): x is NonNullable<typeof x> => Boolean(x),
+      );
+    }
 
     if (list.length === 1) {
       redirect(`/donate/${encodeURIComponent(String(list[0].slug))}/pay`);
