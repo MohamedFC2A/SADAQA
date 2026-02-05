@@ -15,9 +15,8 @@ export function BrandMark({ className }: { className?: string }) {
         style={{ clipPath: "polygon(0 0, 0 100%, 100% 50%)" }}
       />
       <div className="relative z-10 font-brand text-sm font-bold text-pal-black">
-        S
+        M
       </div>
     </div>
   );
 }
-

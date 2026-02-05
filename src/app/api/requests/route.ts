@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requestHelpSchema } from "@/lib/validation/request-help";
 
 export const runtime = "nodejs";
@@ -62,23 +63,69 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseAdminClient();
+    const supabaseWithSession = await createSupabaseServerClient();
+
+    const {
+      data: { user },
+    } = await supabaseWithSession.auth.getUser();
+
+    const { data: profile } = user
+      ? await supabaseWithSession
+          .from("profiles")
+          .select("is_anonymous")
+          .eq("id", user.id)
+          .single()
+      : { data: null };
+
+    const preferAnonymous = profile?.is_anonymous === true;
+
+    const basePayload = {
+      requester_name: preferAnonymous ? "مجهول" : parsed.data.requester_name,
+      phone: parsed.data.phone,
+      location: parsed.data.location,
+      request_type: parsed.data.request_type,
+      description: parsed.data.description,
+      urgency_level: parsed.data.urgency_level ?? "medium",
+      images: [],
+      status: "pending" as const,
+      user_id: user?.id ?? null,
+      is_anonymous: preferAnonymous,
+    };
 
     const { data: inserted, error: insertError } = await supabase
       .from("requests")
-      .insert({
-        requester_name: parsed.data.requester_name,
-        phone: parsed.data.phone,
-        location: parsed.data.location,
-        request_type: parsed.data.request_type,
-        description: parsed.data.description,
-        urgency_level: parsed.data.urgency_level ?? "medium",
-        images: [],
-        status: "pending",
-      })
+      .insert(basePayload)
       .select("id")
       .single();
 
-    if (insertError || !inserted?.id) {
+    const missingAnon =
+      insertError?.message?.includes('column "is_anonymous"') ?? false;
+    const missingUserId =
+      insertError?.message?.includes('column "user_id"') ?? false;
+
+    const { data: insertedFallback, error: insertFallbackError } =
+      missingAnon || missingUserId
+        ? await supabase
+            .from("requests")
+            .insert({
+              requester_name: basePayload.requester_name,
+              phone: basePayload.phone,
+              location: basePayload.location,
+              request_type: basePayload.request_type,
+              description: basePayload.description,
+              urgency_level: basePayload.urgency_level,
+              images: basePayload.images,
+              status: basePayload.status,
+              ...(missingUserId ? {} : { user_id: basePayload.user_id }),
+            })
+            .select("id")
+            .single()
+        : { data: inserted, error: insertError };
+
+    const finalInserted = missingAnon || missingUserId ? insertedFallback : inserted;
+    const finalError = missingAnon || missingUserId ? insertFallbackError : insertError;
+
+    if (finalError || !finalInserted?.id) {
       return NextResponse.json(
         { error: "DB_INSERT_FAILED" },
         { status: 500 },
@@ -134,4 +181,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

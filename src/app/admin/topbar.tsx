@@ -20,7 +20,7 @@ export function AdminTopbar() {
           <Link href="/" className="flex items-center gap-3">
             <BrandMark className="h-9 w-9" />
             <span className="font-brand text-sm font-bold tracking-wide">
-              SADAQA
+              MADDAD
             </span>
           </Link>
           <span className="text-sm font-semibold">لوحة الأدمن</span>

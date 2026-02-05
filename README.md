@@ -1,4 +1,4 @@
-# SADAQA
+# MADDAD
 منصة التبرعات + طلبات المساعدة (MVP: Request Help + Admin).
 
 ## المتطلبات

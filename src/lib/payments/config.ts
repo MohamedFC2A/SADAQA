@@ -4,7 +4,7 @@ export const paymentConfig = {
   // Temporary placeholders (replace when ready)
   vodafoneCash: {
     number: "+20 100 000 0000",
-    recipientName: "SADAQA (مؤقت)",
+    recipientName: "MADDAD (مؤقت)",
   },
 
   bankTransferHint: "للحصول على بيانات التحويل، تواصل على واتساب.",
@@ -12,4 +12,3 @@ export const paymentConfig = {
   fawryEnabled: false,
   instapayEnabled: false,
 } as const;
-

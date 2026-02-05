@@ -14,8 +14,8 @@ const brand = Reem_Kufi_Fun({
 });
 
 export const metadata: Metadata = {
-  title: "SADAQA | منصة التبرعات وطلبات المساعدة",
-  description: "منصة عربية للتبرعات وطلبات المساعدة مع خصوصية وشفافية.",
+  title: "MADDAD | منصة التبرعات وطلبات المساعدة",
+  description: "MADDAD منصة عربية للتبرعات وطلبات المساعدة مع خصوصية وشفافية.",
 };
 
 export default function RootLayout({

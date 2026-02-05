@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generatePaymentCode } from "@/lib/donations/payment-code";
 
 export const runtime = "nodejs";
@@ -28,6 +29,21 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseAdminClient();
+    const supabaseWithSession = await createSupabaseServerClient();
+
+    const {
+      data: { user },
+    } = await supabaseWithSession.auth.getUser();
+
+    const { data: profile } = user
+      ? await supabaseWithSession
+          .from("profiles")
+          .select("is_anonymous")
+          .eq("id", user.id)
+          .single()
+      : { data: null };
+
+    const preferAnonymous = profile?.is_anonymous === true;
     const { data: campaign, error: campaignError } = await supabase
       .from("donation_campaigns")
       .select("id,slug,min_amount,max_amount,currency,is_active")
@@ -59,11 +75,15 @@ export async function POST(request: Request) {
           campaign_id: campaign.id,
           amount: parsed.data.amount,
           currency: campaign.currency,
-          donor_name: parsed.data.donorName ?? null,
+          donor_name: preferAnonymous
+            ? "مجهول"
+            : (parsed.data.donorName ?? null),
           phone: parsed.data.phone ?? null,
           payment_code: paymentCode,
           payment_method: parsed.data.paymentMethod ?? null,
           status: "pending",
+          user_id: user?.id ?? null,
+          is_anonymous: preferAnonymous,
         })
         .select("id,payment_code")
         .single();
@@ -81,6 +101,42 @@ export async function POST(request: Request) {
         msg.includes("duplicate") ||
         msg.includes("unique") ||
         msg.includes("donations_payment_code_key");
+
+      const missingAnon =
+        insertError?.message?.includes('column "is_anonymous"') ?? false;
+      const missingUserId =
+        insertError?.message?.includes('column "user_id"') ?? false;
+
+      if (missingAnon || missingUserId) {
+        const { data: insertedFallback, error: fallbackError } = await supabase
+          .from("donations")
+          .insert({
+            campaign_id: campaign.id,
+            amount: parsed.data.amount,
+            currency: campaign.currency,
+            donor_name: preferAnonymous
+              ? "مجهول"
+              : (parsed.data.donorName ?? null),
+            phone: parsed.data.phone ?? null,
+            payment_code: paymentCode,
+            payment_method: parsed.data.paymentMethod ?? null,
+            status: "pending",
+            ...(missingUserId ? {} : { user_id: user?.id ?? null }),
+            ...(missingAnon ? {} : { is_anonymous: preferAnonymous }),
+          })
+          .select("id,payment_code")
+          .single();
+
+        if (!fallbackError && insertedFallback?.id && insertedFallback.payment_code) {
+          return NextResponse.json(
+            { id: insertedFallback.id, paymentCode: insertedFallback.payment_code },
+            { status: 201 },
+          );
+        }
+
+        lastInsertError = fallbackError;
+        if (!fallbackError) break;
+      }
 
       if (!isUniqueViolation) break;
     }

@@ -23,7 +23,7 @@ export default function DonatePage() {
         <div className="absolute inset-0 bg-[linear-gradient(to_left,rgba(0,0,0,.75),rgba(0,0,0,.35),rgba(0,0,0,.75))]" />
         <div className="relative z-10 space-y-3">
           <h1 className="font-brand text-4xl font-bold tracking-wide text-white">
-            SADAQA
+            MADDAD
           </h1>
           <p className="max-w-2xl text-base leading-7 text-white/85">
             تبرعك يصنع فرقاً حقيقياً. اختر حملة “إطعام المساكين” وسجّل تبرعك الآن.

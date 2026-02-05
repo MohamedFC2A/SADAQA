@@ -1,4 +1,4 @@
--- SADAQA MVP schema (profiles + requests + donations)
+-- MADDAD MVP schema (profiles + requests + donations)
 -- Apply in Supabase SQL Editor.
 
 create extension if not exists pgcrypto;
@@ -27,6 +27,7 @@ create table if not exists public.profiles (
   name text,
   phone text,
   role text not null default 'donor' check (role in ('admin', 'donor', 'beneficiary')),
+  is_anonymous boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -82,6 +83,7 @@ create table if not exists public.requests (
   description text not null,
   urgency_level text not null default 'medium' check (urgency_level in ('low','medium','high','urgent')),
   images jsonb not null default '[]'::jsonb,
+  is_anonymous boolean not null default false,
   status text not null default 'pending' check (status in ('pending','approved','rejected','completed')),
   admin_notes text,
   created_at timestamptz not null default now(),
@@ -112,6 +114,22 @@ alter table public.donation_campaigns
 alter table public.donation_campaigns
   add column if not exists goal_amount integer not null default 10000;
 
+-- Backfill/migrate new profile + activity columns
+alter table public.profiles
+  add column if not exists is_anonymous boolean not null default false;
+
+alter table public.requests
+  add column if not exists user_id uuid references public.profiles (id);
+
+alter table public.requests
+  add column if not exists is_anonymous boolean not null default false;
+
+alter table public.donations
+  add column if not exists user_id uuid references public.profiles (id);
+
+alter table public.donations
+  add column if not exists is_anonymous boolean not null default false;
+
 do $$
 begin
   alter table public.donation_campaigns
@@ -129,8 +147,10 @@ create table if not exists public.donations (
   campaign_id uuid not null references public.donation_campaigns (id),
   amount integer not null check (amount > 0),
   currency text not null default 'EGP',
+  user_id uuid null references public.profiles (id),
   donor_name text,
   phone text,
+  is_anonymous boolean not null default false,
   created_at timestamptz not null default now()
 );
 

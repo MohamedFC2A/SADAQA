@@ -11,7 +11,7 @@ export default function AboutPage() {
       </div>
       <Card className="p-6">
         <p className="leading-8 text-black/70 dark:text-white/70">
-          SADAQA منصة تهدف لتسهيل التبرع وطلبات المساعدة مع التركيز على الخصوصية
+          MADDAD منصة تهدف لتسهيل التبرع وطلبات المساعدة مع التركيز على الخصوصية
           والشفافية وسهولة الاستخدام.
         </p>
       </Card>

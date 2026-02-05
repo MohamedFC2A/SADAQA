@@ -14,6 +14,7 @@ const nav = [
   { href: "/", label: "الرئيسية" },
   { href: "/donate", label: "تبرع" },
   { href: "/request-help", label: "طلب مساعدة" },
+  { href: "/profile", label: "حسابي" },
   { href: "/about", label: "من نحن" },
   { href: "/contact", label: "تواصل" },
   { href: "/faq", label: "FAQ" },
@@ -71,7 +72,7 @@ export function Header() {
           <BrandMark />
           <div className="flex flex-col leading-tight">
             <span className="font-brand text-base font-bold tracking-wide">
-              SADAQA
+              MADDAD
             </span>
             <span className="text-xs text-black/60 dark:text-white/60">
               منصة التبرعات وطلبات المساعدة

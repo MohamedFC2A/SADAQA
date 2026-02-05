@@ -33,7 +33,7 @@ export default function HomePage() {
             <div className="h-3 w-3 rounded-full bg-pal-gold" />
           </div>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
-            SADAQA — منصة التبرعات وطلبات المساعدة
+            MADDAD — منصة التبرعات وطلبات المساعدة
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-black/70 dark:text-white/70">
             منصة عربية تجمع بين التبرع وطلبات المساعدة، بواجهة تحترم الخصوصية
