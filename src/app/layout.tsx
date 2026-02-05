@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cairo, Reem_Kufi_Fun } from "next/font/google";
+import { Cairo, Reem_Kufi_Fun, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -11,6 +11,12 @@ const brand = Reem_Kufi_Fun({
   subsets: ["arabic", "latin"],
   weight: ["400", "700"],
   variable: "--font-brand",
+});
+
+const display = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
@@ -39,7 +45,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${cairo.variable} ${brand.variable}`}
+      className={`${cairo.variable} ${brand.variable} ${display.variable}`}
       suppressHydrationWarning
     >
       <head>

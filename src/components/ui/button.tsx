@@ -7,9 +7,9 @@ const variantClasses: Record<Variant, string> = {
   primary:
     "bg-pal-red text-white hover:bg-pal-red/90 border border-transparent",
   secondary:
-    "bg-white/55 text-foreground border border-black/15 hover:bg-white/70 backdrop-blur-xl dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10",
+    "bg-surface-2 text-foreground border border-border hover:bg-surface-3",
   ghost:
-    "bg-transparent text-foreground border border-transparent hover:bg-black/5 dark:hover:bg-white/10",
+    "bg-transparent text-foreground border border-transparent hover:bg-surface-2",
 };
 
 type ButtonProps = ComponentProps<"button"> & {
@@ -24,7 +24,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pal-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         variantClasses[variant],
         className,
       )}

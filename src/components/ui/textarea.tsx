@@ -5,7 +5,7 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (
     <textarea
       className={cn(
-        "min-h-28 w-full resize-y rounded-xl border border-black/15 bg-white/65 px-3 py-2 text-sm outline-none placeholder:text-black/40 shadow-sm backdrop-blur-xl transition-colors focus:border-pal-green focus-visible:ring-2 focus-visible:ring-pal-green/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-white/15 dark:bg-black/40 dark:placeholder:text-white/40",
+        "min-h-28 w-full resize-y rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-foreground/70 shadow-sm transition-colors focus:border-pal-green focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         className,
       )}
       {...props}

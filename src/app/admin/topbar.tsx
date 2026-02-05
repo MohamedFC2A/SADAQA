@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand/brand-mark";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function AdminTopbar() {
   async function logout() {
@@ -14,7 +15,7 @@ export function AdminTopbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/10 bg-white/70 backdrop-blur dark:border-white/10 dark:bg-black/40">
+    <header className="sticky top-0 z-50 border-b border-border bg-surface/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-3">
@@ -28,28 +29,29 @@ export function AdminTopbar() {
         <div className="flex items-center gap-2">
           <Link
             href="/admin/requests"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-surface-2 hover:text-foreground"
           >
             الطلبات
           </Link>
           <Link
             href="/admin/donations"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-surface-2 hover:text-foreground"
           >
             التبرعات
           </Link>
           <Link
             href="/admin/campaigns"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-surface-2 hover:text-foreground"
           >
             الحملات
           </Link>
           <Link
             href="/admin/debug"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-surface-2 hover:text-foreground"
           >
             تشخيص
           </Link>
+          <ThemeToggle />
           <Button variant="secondary" onClick={logout}>
             تسجيل خروج
           </Button>

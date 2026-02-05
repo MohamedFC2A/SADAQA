@@ -51,6 +51,8 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
   const [phone, setPhone] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
 
+  const currencyLabel = campaign.currency === "EGP" ? "ج" : campaign.currency;
+
   const quickAmounts = useMemo(() => {
     const preferred = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
     return preferred.filter(
@@ -77,7 +79,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
       "أريد تأكيد تبرع (محفظة / واتساب):",
       `كود الدفع: ${state.paymentCode}`,
       `الحملة: ${campaign.title}`,
-      `المبلغ: ${formatEgp(amount)} ${campaign.currency}`,
+      `المبلغ: ${formatEgp(amount)} ${currencyLabel}`,
       `الاسم: ${donor}`,
       `الهاتف: ${tel}`,
       adminLink ? `رابط الأدمن: ${adminLink}` : "",
@@ -90,7 +92,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
     donorName,
     phone,
     campaign.title,
-    campaign.currency,
+    currencyLabel,
     amount,
   ]);
 
@@ -148,9 +150,9 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
         <div className="space-y-5">
           <div className="space-y-1">
             <div className="text-xl font-semibold">بيانات التبرع</div>
-            <div className="text-sm text-black/60 dark:text-white/60">
+            <div className="text-sm text-muted-foreground">
               من {formatEgp(campaign.min_amount)} إلى {formatEgp(campaign.max_amount)}{" "}
-              {campaign.currency}
+              {currencyLabel}
             </div>
           </div>
 
@@ -160,11 +162,10 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
                 key={v}
                 type="button"
                 onClick={() => setAmount(v)}
-                className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
-                  amount === v
+                className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${amount === v
                     ? "border-pal-green bg-pal-green/10 text-pal-green dark:bg-pal-green/20"
                     : "border-black/15 hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
-                }`}
+                  }`}
               >
                 {formatEgp(v)} ج
               </button>
@@ -209,7 +210,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-pal-green/20 bg-pal-green/10 p-4 text-sm text-black/70 dark:text-white/70">
+          <div className="rounded-2xl border border-pal-green/20 bg-pal-green/10 p-4 text-sm text-muted-foreground">
             <div className="font-semibold text-pal-green">طريقة الدفع المتاحة الآن</div>
             <div className="mt-1">
               الدفع يتم عبر <span className="font-semibold">محفظة / واتساب</span> (نفس
@@ -252,20 +253,20 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
                   </a>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-3 text-xs text-black/70 dark:text-white/70 sm:grid-cols-3">
-                <div className="rounded-xl border border-black/10 bg-white/60 p-3 dark:border-white/10 dark:bg-black/30">
+              <div className="grid grid-cols-1 gap-3 text-xs text-muted-foreground sm:grid-cols-3">
+                <div className="rounded-xl border border-border bg-surface/60 p-3">
                   <div className="font-semibold">1) حوّل من المحفظة</div>
                   <div className="mt-1">
                     حوّل المبلغ من محفظتك لأي رقم/جهة يحددها الأدمن.
                   </div>
                 </div>
-                <div className="rounded-xl border border-black/10 bg-white/60 p-3 dark:border-white/10 dark:bg-black/30">
+                <div className="rounded-xl border border-border bg-surface/60 p-3">
                   <div className="font-semibold">2) أرسل الإيصال</div>
                   <div className="mt-1">
                     افتح واتساب بالزر وأرسل صورة الإيصال مع كود الدفع.
                   </div>
                 </div>
-                <div className="rounded-xl border border-black/10 bg-white/60 p-3 dark:border-white/10 dark:bg-black/30">
+                <div className="rounded-xl border border-border bg-surface/60 p-3">
                   <div className="font-semibold">3) يتم التحقق</div>
                   <div className="mt-1">
                     بعد المراجعة ستتحول الحالة إلى “verified” داخل لوحة الأدمن.
@@ -279,7 +280,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
             <Button type="button" onClick={createPayment} disabled={!canCreate} className="sm:w-auto">
               {state.kind === "creating" ? "جارٍ إنشاء الكود..." : "إنشاء كود الدفع"}
             </Button>
-            <div className="text-xs text-black/60 dark:text-white/60">
+            <div className="text-xs text-muted-foreground">
               ملاحظة: طرق الدفع الأخرى ستُفعّل لاحقاً بشكل رسمي داخل المنصة.
             </div>
           </div>
@@ -294,7 +295,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
           </div>
 
           <div className="space-y-2">
-            <div className="rounded-2xl border border-black/10 bg-pal-green/15 px-4 py-3 dark:border-white/10">
+            <div className="rounded-2xl border border-border bg-pal-green/15 px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm font-semibold text-pal-green">
                   محفظة / واتساب
@@ -303,7 +304,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
                   متاح
                 </div>
               </div>
-              <div className="mt-1 text-xs text-black/60 dark:text-white/70">
+              <div className="mt-1 text-xs text-muted-foreground">
                 أنشئ كود الدفع ثم افتح واتساب برسالة جاهزة لإرسال الإيصال.
               </div>
               <a
@@ -316,7 +317,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
               </a>
             </div>
 
-            <div className="rounded-2xl border border-black/10 bg-red-600/85 px-4 py-3 text-white opacity-80 dark:border-white/10">
+            <div className="rounded-2xl border border-border bg-red-600/85 px-4 py-3 text-white opacity-80">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm font-semibold">Vodafone Cash</div>
                 <div className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
@@ -328,7 +329,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-black/10 bg-slate-900/80 px-4 py-3 text-white opacity-80 dark:border-white/10">
+            <div className="rounded-2xl border border-border bg-slate-900/80 px-4 py-3 text-white opacity-80">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm font-semibold">تحويل بنكي</div>
                 <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">
@@ -340,7 +341,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-black/10 bg-yellow-300/85 px-4 py-3 opacity-80 dark:border-white/10">
+            <div className="rounded-2xl border border-border bg-yellow-300/85 px-4 py-3 opacity-80">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm font-semibold text-sky-700">Fawry</div>
                 <div className="rounded-full bg-black/10 px-3 py-1 text-xs font-semibold text-sky-700">
@@ -352,7 +353,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-black/10 bg-purple-600/85 px-4 py-3 opacity-80 dark:border-white/10">
+            <div className="rounded-2xl border border-border bg-purple-600/85 px-4 py-3 opacity-80">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm font-semibold text-orange-200">InstaPay</div>
                 <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-orange-200">
@@ -365,7 +366,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
             </div>
           </div>
 
-          <div className="text-xs text-black/60 dark:text-white/60">
+          <div className="text-xs text-muted-foreground">
             حالياً نتواصل عبر واتساب فقط لتجميع البيانات بسرعة وبأمان.
           </div>
         </Card>

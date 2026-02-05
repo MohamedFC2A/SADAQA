@@ -65,7 +65,7 @@ export function DonateCampaign({
             </div>
           </div>
           <div className="shrink-0 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
-            {campaign.currency}
+            الهدف: {formatEgp(campaign.goal_amount)} ج
           </div>
         </div>
 
