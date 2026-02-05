@@ -3,24 +3,34 @@ import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
 
 export const runtime = "nodejs";
 
+function safeNext(nextRaw: string | null) {
+  const next = typeof nextRaw === "string" ? nextRaw : "";
+  return next.startsWith("/") ? next : "/profile";
+}
+
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/profile";
+  const next = safeNext(url.searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, url));
   }
 
   const { supabase, applyCookies } = createSupabaseRouteHandlerClient(request);
-  await supabase.auth.exchangeCodeForSession(code);
+  const exchanged = await supabase.auth.exchangeCodeForSession(code);
+  const error = (exchanged as { error?: unknown }).error as unknown;
+  const data = (exchanged as { data?: unknown }).data as
+    | { session?: { user?: { id?: string } } | null; user?: { id?: string } | null }
+    | undefined;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = data?.session ?? null;
+  const user = data?.user ?? session?.user ?? null;
 
-  if (!user) {
-    return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, url));
+  if (error || !user || !session) {
+    const res = NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, url));
+    applyCookies(res);
+    return res;
   }
 
   const { data: profile } = await supabase
