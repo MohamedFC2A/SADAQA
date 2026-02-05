@@ -44,10 +44,22 @@ export async function GET() {
     message: c4.error?.message ?? null,
   };
 
+  const c5 = await admin.from("notifications").select("id").limit(1);
+  checks["notifications_table"] = {
+    ok: !c5.error,
+    message: c5.error?.message ?? null,
+  };
+
+  // RPC exists check (will return 0 when called with service role due to auth.uid() = null)
+  const c6 = await admin.rpc("get_unread_notification_count");
+  checks["rpc_get_unread_notification_count"] = {
+    ok: !c6.error,
+    message: c6.error?.message ?? null,
+  };
+
   return NextResponse.json({
     supabaseUrl,
     hasServiceRole,
     checks,
   });
 }
-

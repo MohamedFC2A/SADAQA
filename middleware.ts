@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseMiddlewareClient } from "@/lib/supabase/middleware";
 
+function copyCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach((c) => {
+    to.cookies.set(c.name, c.value, c);
+  });
+}
+
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   const supabase = createSupabaseMiddlewareClient(request, response);
@@ -16,7 +22,9 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    copyCookies(response, res);
+    return res;
   }
 
   const isOnboardingRoute = pathname.startsWith("/onboarding");
@@ -37,7 +45,9 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       url.searchParams.set("next", pathname);
-      return NextResponse.redirect(url);
+      const res = NextResponse.redirect(url);
+      copyCookies(response, res);
+      return res;
     }
   }
 
