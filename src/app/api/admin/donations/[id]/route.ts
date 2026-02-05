@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminApi } from "@/lib/auth/admin-guard";
+import { donationStatusNotification } from "@/lib/notifications/templates";
 
 export const runtime = "nodejs";
 
@@ -57,12 +58,60 @@ export async function PATCH(
     }
 
     const admin = createSupabaseAdminClient();
-    const { error } = await admin.from("donations").update(parsed.data).eq("id", id);
+
+    const wantsStatusChange = Object.prototype.hasOwnProperty.call(parsed.data, "status");
+    const { data: before } = wantsStatusChange
+      ? await admin
+          .from("donations")
+          .select("status,user_id,payment_code,amount,currency")
+          .eq("id", id)
+          .maybeSingle()
+      : { data: null as any };
+
+    const { data: after, error } = await admin
+      .from("donations")
+      .update(parsed.data)
+      .eq("id", id)
+      .select("status,user_id,payment_code,amount,currency")
+      .maybeSingle();
+
     if (error) {
       return NextResponse.json(
         { error: "DB_UPDATE_FAILED", message: error.message },
         { status: 500 },
       );
+    }
+
+    const beforeStatus =
+      typeof before?.status === "string" ? (before.status as string) : null;
+    const afterStatus =
+      typeof (after as any)?.status === "string" ? String((after as any).status) : null;
+    const userId =
+      typeof (after as any)?.user_id === "string" ? String((after as any).user_id) : null;
+
+    if (wantsStatusChange && beforeStatus && afterStatus && beforeStatus !== afterStatus && userId) {
+      const payload = donationStatusNotification({
+        nextStatus: afterStatus as any,
+        paymentCode:
+          typeof (after as any)?.payment_code === "string"
+            ? String((after as any).payment_code)
+            : null,
+        amount:
+          typeof (after as any)?.amount === "number" ? (after as any).amount : null,
+        currency:
+          typeof (after as any)?.currency === "string" ? String((after as any).currency) : null,
+      });
+
+      if (payload) {
+        await admin.from("notifications").insert({
+          scope: "user",
+          target_user_id: userId,
+          title: payload.title,
+          body: payload.body,
+          link_url: payload.linkUrl ?? null,
+          created_by: adminCheck.userId,
+        });
+      }
     }
 
     return NextResponse.json({ ok: true });

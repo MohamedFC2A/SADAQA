@@ -52,10 +52,11 @@ $$;
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name)
+  insert into public.profiles (id, name, phone)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', new.email, new.phone, 'مستخدم جديد')
+    coalesce(new.raw_user_meta_data->>'full_name', new.email, new.phone, 'مستخدم جديد'),
+    coalesce(new.raw_user_meta_data->>'phone', new.phone, null)
   )
   on conflict (id) do nothing;
   return new;
@@ -254,6 +255,220 @@ alter table public.profiles enable row level security;
 alter table public.requests enable row level security;
 alter table public.donation_campaigns enable row level security;
 alter table public.donations enable row level security;
+
+-- Notifications (User + Global) ------------------------------------------------
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  scope text not null check (scope in ('global','user')),
+  target_user_id uuid null references public.profiles (id) on delete cascade,
+  title text not null,
+  body text not null,
+  link_url text,
+  created_by uuid null references public.profiles (id),
+  created_at timestamptz not null default now(),
+  check (
+    (scope = 'global' and target_user_id is null)
+    or (scope = 'user' and target_user_id is not null)
+  )
+);
+
+create table if not exists public.notification_reads (
+  notification_id uuid not null references public.notifications (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  read_at timestamptz not null default now(),
+  primary key (notification_id, user_id)
+);
+
+alter table public.notifications enable row level security;
+alter table public.notification_reads enable row level security;
+
+grant select on public.notifications to authenticated;
+grant select, insert on public.notification_reads to authenticated;
+
+-- Policies (idempotent via drop)
+drop policy if exists notifications_select_user on public.notifications;
+create policy notifications_select_user
+on public.notifications
+for select
+to authenticated
+using (
+  scope = 'global'
+  or target_user_id = auth.uid()
+);
+
+drop policy if exists notifications_admin_all on public.notifications;
+create policy notifications_admin_all
+on public.notifications
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists notification_reads_select_own on public.notification_reads;
+create policy notification_reads_select_own
+on public.notification_reads
+for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists notification_reads_insert_own on public.notification_reads;
+create policy notification_reads_insert_own
+on public.notification_reads
+for insert
+to authenticated
+with check (user_id = auth.uid());
+
+drop policy if exists notification_reads_admin_all on public.notification_reads;
+create policy notification_reads_admin_all
+on public.notification_reads
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+create index if not exists notifications_created_at_idx
+  on public.notifications (created_at desc);
+
+create index if not exists notifications_target_created_at_idx
+  on public.notifications (target_user_id, created_at desc);
+
+create index if not exists notification_reads_user_read_at_idx
+  on public.notification_reads (user_id, read_at desc);
+
+-- RPC helpers (security definer, gated by auth.uid())
+create or replace function public.get_unread_notification_count()
+returns integer
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid;
+  c integer;
+begin
+  uid := auth.uid();
+  if uid is null then
+    return 0;
+  end if;
+
+  select count(*)
+  into c
+  from public.notifications n
+  left join public.notification_reads r
+    on r.notification_id = n.id
+   and r.user_id = uid
+  where (n.scope = 'global' or n.target_user_id = uid)
+    and r.notification_id is null;
+
+  return coalesce(c, 0);
+end;
+$$;
+
+create or replace function public.list_notifications(p_limit integer, p_offset integer)
+returns table (
+  id uuid,
+  title text,
+  body text,
+  link_url text,
+  created_at timestamptz,
+  scope text,
+  is_read boolean,
+  read_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    n.id,
+    n.title,
+    n.body,
+    n.link_url,
+    n.created_at,
+    n.scope,
+    (r.notification_id is not null) as is_read,
+    r.read_at
+  from public.notifications n
+  left join public.notification_reads r
+    on r.notification_id = n.id
+   and r.user_id = auth.uid()
+  where auth.uid() is not null
+    and (n.scope = 'global' or n.target_user_id = auth.uid())
+  order by n.created_at desc
+  limit greatest(1, least(coalesce(p_limit, 50), 200))
+  offset greatest(0, coalesce(p_offset, 0));
+$$;
+
+create or replace function public.get_latest_unread_notification()
+returns table (
+  id uuid,
+  title text,
+  body text,
+  link_url text,
+  created_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    n.id,
+    n.title,
+    n.body,
+    n.link_url,
+    n.created_at
+  from public.notifications n
+  left join public.notification_reads r
+    on r.notification_id = n.id
+   and r.user_id = auth.uid()
+  where auth.uid() is not null
+    and (n.scope = 'global' or n.target_user_id = auth.uid())
+    and r.notification_id is null
+  order by n.created_at desc
+  limit 1;
+$$;
+
+create or replace function public.mark_all_notifications_read()
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid;
+  affected integer := 0;
+begin
+  uid := auth.uid();
+  if uid is null then
+    return 0;
+  end if;
+
+  with ins as (
+    insert into public.notification_reads (notification_id, user_id, read_at)
+    select n.id, uid, now()
+    from public.notifications n
+    left join public.notification_reads r
+      on r.notification_id = n.id
+     and r.user_id = uid
+    where (n.scope = 'global' or n.target_user_id = uid)
+      and r.notification_id is null
+    on conflict (notification_id, user_id) do update
+      set read_at = excluded.read_at
+    returning 1
+  )
+  select count(*) into affected from ins;
+
+  return coalesce(affected, 0);
+end;
+$$;
+
+grant execute on function public.get_unread_notification_count() to authenticated;
+grant execute on function public.list_notifications(integer, integer) to authenticated;
+grant execute on function public.get_latest_unread_notification() to authenticated;
+grant execute on function public.mark_all_notifications_read() to authenticated;
 
 -- Grants (PostgREST roles)
 grant select on public.donation_campaigns to anon, authenticated;

@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { requestStatuses, requestTypes } from "@/lib/requests/constants";
+import {
+  requestStatuses,
+  requestTypeLabelAr,
+  requestTypes,
+  type RequestType,
+} from "@/lib/requests/constants";
 import { requireAdminApi } from "@/lib/auth/admin-guard";
+import { requestStatusNotification } from "@/lib/notifications/templates";
 
 export const runtime = "nodejs";
 
@@ -50,16 +56,65 @@ export async function PATCH(
       );
     }
 
-    const { error } = await admin
+    const wantsStatusChange = Object.prototype.hasOwnProperty.call(parsed.data, "status");
+    const { data: before } = wantsStatusChange
+      ? await admin
+          .from("requests")
+          .select("status,user_id,requester_name,request_type")
+          .eq("id", id)
+          .maybeSingle()
+      : { data: null as any };
+
+    const { data: after, error } = await admin
       .from("requests")
       .update(parsed.data)
-      .eq("id", id);
+      .eq("id", id)
+      .select("status,user_id,requester_name,request_type")
+      .maybeSingle();
 
     if (error) {
       return NextResponse.json(
         { error: "DB_UPDATE_FAILED", message: error.message },
         { status: 500 },
       );
+    }
+
+    const beforeStatus =
+      typeof before?.status === "string" ? (before.status as string) : null;
+    const afterStatus =
+      typeof (after as any)?.status === "string" ? String((after as any).status) : null;
+    const userId =
+      typeof (after as any)?.user_id === "string" ? String((after as any).user_id) : null;
+
+    if (wantsStatusChange && afterStatus && beforeStatus !== afterStatus && userId) {
+      const requesterName =
+        typeof (after as any)?.requester_name === "string"
+          ? String((after as any).requester_name)
+          : null;
+      const requestTypeRaw =
+        typeof (after as any)?.request_type === "string"
+          ? String((after as any).request_type)
+          : null;
+      const requestType: RequestType | null =
+        requestTypeRaw && requestTypes.includes(requestTypeRaw as RequestType)
+          ? (requestTypeRaw as RequestType)
+          : null;
+      const payload = requestStatusNotification({
+        nextStatus: afterStatus as any,
+        requesterName,
+        requestTypeLabel: requestType ? requestTypeLabelAr[requestType] : null,
+      });
+
+      if (payload) {
+        await admin.from("notifications").insert({
+          scope: "user",
+          target_user_id: userId,
+          title: payload.title,
+          body: payload.body,
+          link_url: payload.linkUrl ?? null,
+          created_by: adminCheck.userId,
+        });
+      }
     }
 
     return NextResponse.json({ ok: true });

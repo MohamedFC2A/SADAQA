@@ -46,6 +46,12 @@ export function AdminTopbar() {
             الحملات
           </Link>
           <Link
+            href="/admin/notifications"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+          >
+            الإشعارات
+          </Link>
+          <Link
             href="/admin/debug"
             className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-surface-2 hover:text-foreground"
           >

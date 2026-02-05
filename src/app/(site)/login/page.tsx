@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { LoginForm } from "@/app/(site)/login/login-form";
+import Link from "next/link";
 
 export default function LoginPage({
   searchParams,
@@ -19,6 +20,16 @@ export default function LoginPage({
       <Card className="p-6">
         <LoginForm nextPath={next} />
       </Card>
+
+      <div className="text-center text-sm text-muted-foreground">
+        ليس لديك حساب؟{" "}
+        <Link
+          href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}
+          className="font-semibold text-pal-green hover:underline"
+        >
+          إنشاء حساب
+        </Link>
+      </div>
     </div>
   );
 }

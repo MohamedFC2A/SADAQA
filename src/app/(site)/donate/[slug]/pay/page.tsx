@@ -15,6 +15,26 @@ export default async function DonatePayPage({
   const { slug } = await params;
   const supabase = await createSupabaseServerClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(`/donate/${slug}/pay`)}`);
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name,phone")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const name = typeof profile?.name === "string" ? profile.name.trim() : "";
+  const phone = typeof profile?.phone === "string" ? profile.phone.trim() : "";
+  if (name.length < 2 || phone.length < 8) {
+    redirect(`/onboarding?next=${encodeURIComponent(`/donate/${slug}/pay`)}`);
+  }
+
   const { data, error } = await supabase
     .from("donation_campaigns")
     .select(

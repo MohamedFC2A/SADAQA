@@ -35,13 +35,35 @@ export async function POST(request: Request) {
       data: { user },
     } = await supabaseWithSession.auth.getUser();
 
-    const { data: profile } = user
-      ? await supabaseWithSession
-          .from("profiles")
-          .select("is_anonymous")
-          .eq("id", user.id)
-          .single()
-      : { data: null };
+    if (!user) {
+      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    }
+
+    const { data: profile, error: profileError } = await supabaseWithSession
+      .from("profiles")
+      .select("name,phone,is_anonymous")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "PROFILE_NOT_FOUND" }, { status: 400 });
+    }
+
+    const profileName = typeof profile.name === "string" ? profile.name.trim() : "";
+    const profilePhone =
+      typeof profile.phone === "string" ? profile.phone.trim() : "";
+    if (profileName.length < 2) {
+      return NextResponse.json(
+        { error: "PROFILE_NAME_REQUIRED", field: "name" },
+        { status: 400 },
+      );
+    }
+    if (profilePhone.length < 8) {
+      return NextResponse.json(
+        { error: "PROFILE_PHONE_REQUIRED", field: "phone" },
+        { status: 400 },
+      );
+    }
 
     const preferAnonymous = profile?.is_anonymous === true;
     const { data: campaign, error: campaignError } = await supabase
@@ -77,12 +99,12 @@ export async function POST(request: Request) {
           currency: campaign.currency,
           donor_name: preferAnonymous
             ? "مجهول"
-            : (parsed.data.donorName ?? null),
-          phone: parsed.data.phone ?? null,
+            : profileName,
+          phone: profilePhone,
           payment_code: paymentCode,
           payment_method: parsed.data.paymentMethod ?? null,
           status: "pending",
-          user_id: user?.id ?? null,
+          user_id: user.id,
           is_anonymous: preferAnonymous,
         })
         .select("id,payment_code")
@@ -116,12 +138,12 @@ export async function POST(request: Request) {
             currency: campaign.currency,
             donor_name: preferAnonymous
               ? "مجهول"
-              : (parsed.data.donorName ?? null),
-            phone: parsed.data.phone ?? null,
+              : profileName,
+            phone: profilePhone,
             payment_code: paymentCode,
             payment_method: parsed.data.paymentMethod ?? null,
             status: "pending",
-            ...(missingUserId ? {} : { user_id: user?.id ?? null }),
+            ...(missingUserId ? {} : { user_id: user.id }),
             ...(missingAnon ? {} : { is_anonymous: preferAnonymous }),
           })
           .select("id,payment_code")

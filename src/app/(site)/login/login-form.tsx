@@ -49,7 +49,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
         return;
       }
 
-      router.push(nextPath && nextPath.startsWith("/") ? nextPath : "/admin/requests");
+      router.push(nextPath && nextPath.startsWith("/") ? nextPath : "/profile");
       router.refresh();
     } catch {
       setState({
@@ -74,7 +74,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
 
     const origin = window.location.origin;
     const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(
-      nextPath && nextPath.startsWith("/") ? nextPath : "/admin/requests",
+      nextPath && nextPath.startsWith("/") ? nextPath : "/profile",
     )}`;
 
     const { error } = await supabase.auth.signInWithOAuth({

@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { paymentConfig } from "@/lib/payments/config";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Input } from "@/components/ui/input";
 
 type Campaign = {
@@ -25,6 +26,12 @@ type State =
   | { kind: "creating" }
   | { kind: "ready"; id: string; paymentCode: string }
   | { kind: "error"; message: string };
+
+type Profile = {
+  name: string;
+  phone: string;
+  isAnonymous: boolean;
+};
 
 function formatEgp(amount: number) {
   return new Intl.NumberFormat("ar-EG", { maximumFractionDigits: 0 }).format(
@@ -47,11 +54,42 @@ async function copy(text: string) {
 
 export function DonationCheckout({ campaign }: { campaign: Campaign }) {
   const [amount, setAmount] = useState<number>(campaign.min_amount);
-  const [donorName, setDonorName] = useState("");
-  const [phone, setPhone] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const currencyLabel = campaign.currency === "EGP" ? "ج" : campaign.currency;
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/profile", { cache: "no-store" })
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!mounted) return;
+        const prof = data?.profile;
+        const name = typeof prof?.name === "string" ? prof.name.trim() : "";
+        const phone = typeof prof?.phone === "string" ? prof.phone.trim() : "";
+        const isAnonymous = prof?.isAnonymous === true;
+
+        if (name.length < 2 || phone.length < 8) {
+          setProfileError("بيانات الحساب غير مكتملة. أكملها من صفحة حسابي.");
+          setProfile(null);
+          return;
+        }
+
+        setProfile({ name, phone, isAnonymous });
+        setProfileError(null);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setProfileError("تعذر تحميل بيانات الحساب حالياً. جرّب مرة أخرى.");
+        setProfile(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const quickAmounts = useMemo(() => {
     const preferred = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -65,12 +103,18 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
     amount >= campaign.min_amount &&
     amount <= campaign.max_amount;
 
-  const canCreate = state.kind !== "creating" && amountOk;
+  const profileOk = Boolean(profile && profile.name.trim().length >= 2 && profile.phone.trim().length >= 8);
+  const canCreate = state.kind !== "creating" && amountOk && profileOk;
 
   const whatsappMessage = useMemo(() => {
     if (state.kind !== "ready") return "";
-    const donor = donorName.trim() ? donorName.trim() : "-";
-    const tel = phone.trim() ? phone.trim() : "-";
+    const donor =
+      profile?.isAnonymous === true
+        ? "مجهول"
+        : profile?.name?.trim()
+          ? profile.name.trim()
+          : "-";
+    const tel = profile?.phone?.trim() ? profile.phone.trim() : "-";
     const origin =
       typeof window !== "undefined" ? window.location.origin : "";
     const adminLink = origin ? `${origin}/admin/donations/${state.id}` : "";
@@ -89,8 +133,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
       .join("\n");
   }, [
     state,
-    donorName,
-    phone,
+    profile,
     campaign.title,
     currencyLabel,
     amount,
@@ -106,8 +149,6 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
         body: JSON.stringify({
           campaignSlug: campaign.slug,
           amount,
-          donorName: donorName.trim() ? donorName.trim() : undefined,
-          phone: phone.trim() ? phone.trim() : undefined,
           paymentMethod: "whatsapp",
         }),
       });
@@ -189,24 +230,33 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
                 </div>
               ) : null}
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold">(اختياري) الاسم</label>
-              <Input
-                value={donorName}
-                onChange={(e) => setDonorName(e.target.value)}
-                placeholder="مثال: محمد"
-                autoComplete="name"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold">(اختياري) الهاتف</label>
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="مثال: 01xxxxxxxxx"
-                inputMode="tel"
-                autoComplete="tel"
-              />
+            <div className="space-y-2 sm:col-span-2">
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm font-semibold">بيانات الحساب</label>
+                <ButtonLink href="/profile" variant="ghost" className="h-10 px-4">
+                  تعديل من حسابي
+                </ButtonLink>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm">
+                  <div className="text-xs font-semibold text-muted-foreground">الاسم</div>
+                  <div className="mt-1 font-semibold">
+                    {profile?.isAnonymous ? "مجهول" : profile?.name ?? "—"}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm">
+                  <div className="text-xs font-semibold text-muted-foreground">الهاتف</div>
+                  <div className="mt-1 font-semibold">{profile?.phone ?? "—"}</div>
+                </div>
+              </div>
+              {profileError ? (
+                <div className="text-xs text-pal-red">{profileError}</div>
+              ) : !profile ? (
+                <div className="text-xs text-muted-foreground">جارٍ تحميل بيانات الحساب...</div>
+              ) : null}
+              <div className="text-xs text-muted-foreground">
+                يتم سحب الاسم ورقم الهاتف تلقائياً من حسابك. إذا كان وضعك مجهولاً سيظهر الاسم كمجهول.
+              </div>
             </div>
           </div>
 

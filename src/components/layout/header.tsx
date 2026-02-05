@@ -10,6 +10,7 @@ import Link from "next/link";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const nav = [
   { href: "/", label: "الرئيسية" },
@@ -105,6 +106,7 @@ export function Header() {
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <ThemeToggle className="hidden sm:inline-flex" />
+          {isAuthed ? <NotificationBell /> : null}
           {isAdmin ? (
             <ButtonLink
               href="/admin/requests"
@@ -151,6 +153,7 @@ export function Header() {
             </div>
             <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
               <ThemeToggle className="flex-1" />
+              {isAuthed ? <NotificationBell /> : null}
               {isAdmin ? (
                 <ButtonLink
                   href="/admin/requests"
