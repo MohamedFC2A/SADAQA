@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -27,41 +26,22 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    let unsub: (() => void) | null = null;
-
-    getSupabaseBrowserClient().then((supabase) => {
-      if (!supabase) return;
-      supabase.auth.getSession().then(({ data }) => {
-        setIsAuthed(Boolean(data.session));
-      });
-      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuthed(Boolean(session));
-      });
-      unsub = () => sub.subscription.unsubscribe();
-    });
-
-    return () => {
-      unsub?.();
-    };
-  }, []);
-
-  useEffect(() => {
     fetch("/api/me", { cache: "no-store" })
       .then(async (res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || typeof data !== "object") return;
         const obj = data as Record<string, unknown>;
+        setIsAuthed(obj["authed"] === true);
         setIsAdmin(obj["isAdmin"] === true);
       })
       .catch(() => {
+        setIsAuthed(false);
         setIsAdmin(false);
       });
-  }, [isAuthed]);
+  }, [pathname]);
 
   async function handleLogout() {
-    const supabase = await getSupabaseBrowserClient();
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     window.location.href = "/";
   }
 

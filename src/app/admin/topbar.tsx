@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function AdminTopbar() {
   async function logout() {
-    const supabase = await getSupabaseBrowserClient();
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     window.location.href = "/";
   }
 

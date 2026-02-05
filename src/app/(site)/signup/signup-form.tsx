@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -44,47 +43,37 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
     setState({ kind: "submitting" });
 
     try {
-      const supabase = await getSupabaseBrowserClient();
-      if (!supabase) {
-        setState({
-          kind: "error",
-          message:
-            "Supabase غير متاح حالياً. تأكد من متغيرات البيئة ثم أعد المحاولة.",
-        });
-        return;
-      }
-
-      const origin = window.location.origin;
       const next = nextPath && nextPath.startsWith("/") ? nextPath : "/onboarding";
-      const emailRedirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
-
-      const { data, error } = await supabase.auth.signUp({
-        email: emailTrimmed,
-        password,
-        options: {
-          emailRedirectTo,
-          data: {
-            full_name: nameTrimmed,
-            phone: phoneTrimmed,
-          },
-        },
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: nameTrimmed,
+          phone: phoneTrimmed,
+          email: emailTrimmed,
+          password,
+          next,
+        }),
       });
 
-      if (error) {
+      const data = (await res.json().catch(() => null)) as any;
+      if (!res.ok) {
         setState({
           kind: "error",
           message:
-            error.message.includes("already") || error.message.includes("registered")
+            String(data?.error ?? "")
+              .toLowerCase()
+              .includes("email_already")
               ? "هذا البريد مسجل بالفعل. سجّل دخولك بدلاً من ذلك."
               : "تعذر إنشاء الحساب حالياً. تحقق من البيانات أو جرّب مرة أخرى.",
         });
         return;
       }
 
-      const needsEmailConfirmation = !data.session;
+      const needsEmailConfirmation = data?.needsEmailConfirmation === true;
       setState({ kind: "success", needsEmailConfirmation });
 
-      if (data.session) {
+      if (!needsEmailConfirmation) {
         router.push(`/onboarding?next=${encodeURIComponent(next)}`);
         router.refresh();
       }
@@ -177,4 +166,3 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
     </form>
   );
 }
-

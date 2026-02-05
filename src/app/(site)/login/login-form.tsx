@@ -27,21 +27,13 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
     setState({ kind: "submitting" });
 
     try {
-      const supabase = await getSupabaseBrowserClient();
-      if (!supabase) {
-        setState({
-          kind: "error",
-          message:
-            "Supabase غير متاح حالياً. تأكد من متغيرات Vercel (Production) ثم Redeploy.",
-        });
-        return;
-      }
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) {
+      if (!res.ok) {
         setState({
           kind: "error",
           message: "بيانات الدخول غير صحيحة أو غير مسموحة.",
