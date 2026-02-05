@@ -1,78 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-type FormState =
-  | { kind: "idle" }
-  | { kind: "submitting" }
-  | { kind: "error"; message: string };
+import { loginAction } from "@/app/(site)/login/actions";
 
 export function LoginForm({ nextPath }: { nextPath?: string }) {
-  const [state, setState] = useState<FormState>({ kind: "idle" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [serverState, formAction, pending] = useActionState(loginAction, {
+    kind: "idle" as const,
+  });
+
   const canSubmit = useMemo(() => {
-    if (state.kind === "submitting") return false;
+    if (pending) return false;
     return email.trim().length > 3 && password.length >= 6;
-  }, [state.kind, email, password]);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setState({ kind: "submitting" });
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const data = (await res.json().catch(() => null)) as unknown;
-        const err =
-          data && typeof data === "object" && typeof (data as any).error === "string"
-            ? String((data as any).error)
-            : null;
-
-        setState({
-          kind: "error",
-          message:
-            res.status === 401
-              ? "بيانات الدخول غير صحيحة أو الحساب غير مؤكد."
-              : res.status >= 500
-                ? "خطأ في السيرفر أثناء تسجيل الدخول. تأكد من مفاتيح Supabase على Vercel وأنها لنفس المشروع."
-                : err === "INVALID_INPUT"
-                  ? "تأكد من البريد الإلكتروني وكلمة المرور."
-                  : "تعذر تسجيل الدخول حالياً. حاول مرة أخرى.",
-        });
-        return;
-      }
-
-      const dest = nextPath && nextPath.startsWith("/") ? nextPath : "/profile";
-      window.location.href = dest;
-    } catch {
-      setState({
-        kind: "error",
-        message:
-          "تعذر تسجيل الدخول حالياً. تأكد من إعداد Supabase ومتغيرات البيئة.",
-      });
-    }
-  }
+  }, [pending, email, password]);
 
   async function loginWithGoogle() {
-    setState({ kind: "submitting" });
+    // Keep OAuth initiation in the browser. The /auth/callback route exchanges the code
+    // and sets the server cookies.
     const supabase = await getSupabaseBrowserClient();
     if (!supabase) {
-      setState({
-        kind: "error",
-        message:
-          "Supabase غير متاح حالياً. تأكد من متغيرات Vercel (Production) ثم Redeploy.",
-      });
+      // Server action will handle email/password, but OAuth needs client env.
       return;
     }
 
@@ -86,16 +38,12 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
       options: { redirectTo },
     });
 
-    if (error) {
-      setState({
-        kind: "error",
-        message: "تعذر تسجيل الدخول بجوجل. تأكد من إعداد Supabase OAuth.",
-      });
-    }
+    if (error) return;
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form action={formAction} className="space-y-4">
+      <input type="hidden" name="next" value={nextPath ?? ""} />
       <div className="space-y-3">
         <Button
           type="button"
@@ -114,6 +62,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
       <div className="space-y-2">
         <label className="text-sm font-semibold">البريد الإلكتروني</label>
         <Input
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
@@ -124,6 +73,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
       <div className="space-y-2">
         <label className="text-sm font-semibold">كلمة المرور</label>
         <Input
+          name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           type="password"
@@ -132,14 +82,14 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
         />
       </div>
 
-      {state.kind === "error" ? (
+      {serverState.kind === "error" ? (
         <div className="rounded-xl border border-pal-red/30 bg-pal-red/10 p-3 text-sm text-pal-red">
-          {state.message}
+          {serverState.message}
         </div>
       ) : null}
 
       <Button type="submit" disabled={!canSubmit} className="w-full">
-        {state.kind === "submitting" ? "جارٍ الدخول..." : "دخول"}
+        {pending ? "جارٍ الدخول..." : "دخول"}
       </Button>
 
       <div className="text-xs text-muted-foreground">

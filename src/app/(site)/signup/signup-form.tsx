@@ -1,24 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-type FormState =
-  | { kind: "idle" }
-  | { kind: "submitting" }
-  | { kind: "success"; needsEmailConfirmation: boolean }
-  | { kind: "error"; message: string };
+import { signupAction } from "@/app/(site)/signup/actions";
 
 export function SignupForm({ nextPath }: { nextPath?: string }) {
-  const [state, setState] = useState<FormState>({ kind: "idle" });
-
   const [name, setName] = useState("");
   const [confirmName, setConfirmName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [serverState, formAction, pending] = useActionState(signupAction, {
+    kind: "idle" as const,
+  });
 
   const nameTrimmed = name.trim();
   const confirmTrimmed = confirmName.trim();
@@ -31,68 +28,26 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
   const passwordOk = password.length >= 6;
 
   const canSubmit = useMemo(() => {
-    if (state.kind === "submitting") return false;
+    if (pending) return false;
     return nameOk && confirmOk && phoneOk && emailTrimmed.length > 3 && passwordOk;
-  }, [state.kind, nameOk, confirmOk, phoneOk, emailTrimmed.length, passwordOk]);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!canSubmit) return;
-    setState({ kind: "submitting" });
-
-    try {
-      const next = nextPath && nextPath.startsWith("/") ? nextPath : "/onboarding";
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          name: nameTrimmed,
-          phone: phoneTrimmed,
-          email: emailTrimmed,
-          password,
-          next,
-        }),
-      });
-
-      const data = (await res.json().catch(() => null)) as any;
-      if (!res.ok) {
-        const err = typeof data?.error === "string" ? String(data.error) : null;
-        setState({
-          kind: "error",
-          message:
-            res.status === 409 || err === "EMAIL_ALREADY_REGISTERED"
-              ? "هذا البريد مسجل بالفعل. سجّل دخولك بدلاً من ذلك."
-              : res.status >= 500
-                ? "خطأ في السيرفر أثناء إنشاء الحساب. تأكد من مفاتيح Supabase على Vercel وأنها لنفس المشروع."
-              : "تعذر إنشاء الحساب حالياً. تحقق من البيانات أو جرّب مرة أخرى.",
-        });
-        return;
-      }
-
-      const needsEmailConfirmation = data?.needsEmailConfirmation === true;
-      setState({ kind: "success", needsEmailConfirmation });
-
-      if (!needsEmailConfirmation) {
-        window.location.href = `/onboarding?next=${encodeURIComponent(next)}`;
-      }
-    } catch {
-      setState({
-        kind: "error",
-        message: "حدث خطأ غير متوقع أثناء إنشاء الحساب.",
-      });
-    }
-  }
+  }, [pending, nameOk, confirmOk, phoneOk, emailTrimmed.length, passwordOk]);
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form action={formAction} className="space-y-4">
+      <input type="hidden" name="next" value={nextPath ?? ""} />
       <div className="space-y-2">
         <label className="text-sm font-semibold">الاسم</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الحقيقي" />
+        <Input
+          name="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="اسمك الحقيقي"
+        />
       </div>
       <div className="space-y-2">
         <label className="text-sm font-semibold">تأكيد الاسم</label>
         <Input
+          name="confirmName"
           value={confirmName}
           onChange={(e) => setConfirmName(e.target.value)}
           placeholder="اكتب الاسم مرة ثانية"
@@ -104,6 +59,7 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
       <div className="space-y-2">
         <label className="text-sm font-semibold">رقم الهاتف (إجباري)</label>
         <Input
+          name="phone"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           inputMode="tel"
@@ -116,6 +72,7 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
       <div className="space-y-2">
         <label className="text-sm font-semibold">البريد الإلكتروني</label>
         <Input
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
@@ -126,6 +83,7 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
       <div className="space-y-2">
         <label className="text-sm font-semibold">كلمة المرور</label>
         <Input
+          name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           type="password"
@@ -137,20 +95,20 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
         ) : null}
       </div>
 
-      {state.kind === "error" ? (
+      {serverState.kind === "error" ? (
         <div className="rounded-xl border border-pal-red/30 bg-pal-red/10 p-3 text-sm text-pal-red">
-          {state.message}
+          {serverState.message}
         </div>
-      ) : state.kind === "success" ? (
+      ) : serverState.kind === "success" ? (
         <div className="rounded-xl border border-pal-green/30 bg-pal-green/10 p-3 text-sm text-pal-green">
-          {state.needsEmailConfirmation
+          {serverState.needsEmailConfirmation
             ? "تم إنشاء حسابك. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول."
             : "تم إنشاء الحساب بنجاح. جارٍ تجهيز حسابك..."}
         </div>
       ) : null}
 
       <Button type="submit" disabled={!canSubmit} className="w-full">
-        {state.kind === "submitting" ? "جارٍ الإنشاء..." : "إنشاء حساب"}
+        {pending ? "جارٍ الإنشاء..." : "إنشاء حساب"}
       </Button>
 
       <div className="text-center text-sm text-muted-foreground">
