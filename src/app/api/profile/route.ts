@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 const updateSchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),
+  phone: z.string().trim().min(8).max(20).optional(),
   isAnonymous: z.boolean().optional(),
 });
 
@@ -93,6 +94,10 @@ export async function PATCH(request: Request) {
   const updates: Record<string, unknown> = {};
   if (Object.prototype.hasOwnProperty.call(parsed.data, "name")) {
     updates.name = parsed.data.name;
+  }
+  if (Object.prototype.hasOwnProperty.call(parsed.data, "phone")) {
+    const next = parsed.data.phone?.trim() ?? "";
+    updates.phone = next.length === 0 ? null : next;
   }
   if (Object.prototype.hasOwnProperty.call(parsed.data, "isAnonymous")) {
     updates.is_anonymous = parsed.data.isAnonymous;

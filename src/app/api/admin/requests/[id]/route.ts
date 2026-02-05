@@ -11,7 +11,6 @@ const idSchema = z.string().uuid();
 
 const patchSchema = z.object({
   status: z.enum(requestStatuses).optional(),
-  urgency_level: z.literal("urgent").optional(),
   admin_notes: z.string().max(5000).optional(),
   requester_name: z.string().trim().min(2).max(80).optional(),
   phone: z.string().trim().min(8).max(20).optional(),

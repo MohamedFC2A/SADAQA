@@ -13,15 +13,14 @@ function applyTheme(theme: Theme) {
   } else {
     root.classList.remove("dark");
   }
-  localStorage.setItem("theme", theme);
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "light";
-    const stored = (localStorage.getItem("theme") as Theme | null) ?? null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return stored ?? (prefersDark ? "dark" : "light");
+    const stored = localStorage.getItem("theme");
+    if (stored === "light" || stored === "dark") return stored;
+    return document.documentElement.classList.contains("dark") ? "dark" : "light";
   });
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   function toggle() {
     setTheme((prev) => {
       const next: Theme = prev === "dark" ? "light" : "dark";
-      applyTheme(next);
+      localStorage.setItem("theme", next);
       return next;
     });
   }

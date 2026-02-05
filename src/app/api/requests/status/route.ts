@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("requests")
-    .select("id,status,urgency_level,updated_at,created_at")
+    .select("id,status,updated_at,created_at")
     .eq("id", parsed.data.id)
     .eq("phone", parsed.data.phone)
     .single();
@@ -35,9 +35,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     id: data.id,
     status: data.status,
-    urgency_level: data.urgency_level,
     created_at: data.created_at,
     updated_at: data.updated_at,
   });
 }
-

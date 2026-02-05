@@ -22,11 +22,51 @@ export async function POST(request: Request) {
   try {
     const form = await request.formData();
 
+    const supabaseWithSession = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabaseWithSession.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    }
+
+    const { data: profile, error: profileError } = await supabaseWithSession
+      .from("profiles")
+      .select("name,phone,is_anonymous")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "PROFILE_NOT_FOUND" }, { status: 400 });
+    }
+
+    const profileName = typeof profile.name === "string" ? profile.name.trim() : "";
+    const profilePhone = typeof profile.phone === "string" ? profile.phone.trim() : "";
+    if (profileName.length < 2) {
+      return NextResponse.json(
+        { error: "PROFILE_NAME_REQUIRED", field: "name" },
+        { status: 400 },
+      );
+    }
+    if (profilePhone.length < 8) {
+      return NextResponse.json(
+        { error: "PROFILE_PHONE_REQUIRED", field: "phone" },
+        { status: 400 },
+      );
+    }
+
     const parsed = requestHelpSchema.safeParse({
-      requester_name: form.get("requester_name"),
-      phone: form.get("phone"),
-      location: form.get("location"),
       request_type: form.get("request_type"),
+      request_detail: form.get("request_detail"),
+      request_detail_label: form.get("request_detail_label"),
+      governorate: form.get("governorate"),
+      address_detail: form.get("address_detail"),
+      location_source: form.get("location_source"),
+      location_lat: form.get("location_lat"),
+      location_lng: form.get("location_lng"),
+      location_accuracy_m: form.get("location_accuracy_m"),
+      location_display_name: form.get("location_display_name"),
       description: form.get("description"),
     });
 
@@ -70,33 +110,32 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseAdminClient();
-    const supabaseWithSession = await createSupabaseServerClient();
+    const preferAnonymous = profile.is_anonymous === true;
 
-    const {
-      data: { user },
-    } = await supabaseWithSession.auth.getUser();
-
-    const { data: profile } = user
-      ? await supabaseWithSession
-          .from("profiles")
-          .select("is_anonymous")
-          .eq("id", user.id)
-          .single()
-      : { data: null };
-
-    const preferAnonymous = profile?.is_anonymous === true;
+    const location = `${parsed.data.governorate} — ${parsed.data.address_detail}`;
 
     const basePayload = {
-      requester_name: preferAnonymous ? "مجهول" : parsed.data.requester_name,
-      phone: parsed.data.phone,
-      location: parsed.data.location,
+      requester_name: preferAnonymous ? "مجهول" : profileName,
+      phone: profilePhone,
+      location,
       request_type: parsed.data.request_type,
+      request_detail: parsed.data.request_detail,
+      request_detail_label: parsed.data.request_detail_label ?? null,
       description: parsed.data.description,
       urgency_level: "urgent",
       images: [],
       status: "pending" as const,
-      user_id: user?.id ?? null,
+      user_id: user.id,
       is_anonymous: preferAnonymous,
+      governorate: parsed.data.governorate,
+      address_detail: parsed.data.address_detail,
+      location_source: parsed.data.location_source,
+      location_lat: parsed.data.location_source === "gps" ? parsed.data.location_lat ?? null : null,
+      location_lng: parsed.data.location_source === "gps" ? parsed.data.location_lng ?? null : null,
+      location_accuracy_m:
+        parsed.data.location_source === "gps"
+          ? parsed.data.location_accuracy_m ?? null
+          : null,
     };
 
     const { data: inserted, error: insertError } = await supabase
@@ -109,9 +148,18 @@ export async function POST(request: Request) {
       insertError?.message?.includes('column "is_anonymous"') ?? false;
     const missingUserId =
       insertError?.message?.includes('column "user_id"') ?? false;
+    const missingSmartFields =
+      insertError?.message?.includes('column "request_detail"') ||
+      insertError?.message?.includes('column "request_detail_label"') ||
+      insertError?.message?.includes('column "governorate"') ||
+      insertError?.message?.includes('column "address_detail"') ||
+      insertError?.message?.includes('column "location_source"') ||
+      insertError?.message?.includes('column "location_lat"') ||
+      insertError?.message?.includes('column "location_lng"') ||
+      insertError?.message?.includes('column "location_accuracy_m"');
 
     const { data: insertedFallback, error: insertFallbackError } =
-      missingAnon || missingUserId
+      missingAnon || missingUserId || missingSmartFields
         ? await supabase
             .from("requests")
             .insert({
@@ -129,8 +177,12 @@ export async function POST(request: Request) {
             .single()
         : { data: inserted, error: insertError };
 
-    const finalInserted = missingAnon || missingUserId ? insertedFallback : inserted;
-    const finalError = missingAnon || missingUserId ? insertFallbackError : insertError;
+    const finalInserted =
+      missingAnon || missingUserId || missingSmartFields ? insertedFallback : inserted;
+    const finalError =
+      missingAnon || missingUserId || missingSmartFields
+        ? insertFallbackError
+        : insertError;
 
     if (finalError || !finalInserted?.id) {
       return NextResponse.json(

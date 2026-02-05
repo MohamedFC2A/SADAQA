@@ -18,7 +18,6 @@ type RequestItem = {
   name: string;
   type: string;
   status: string;
-  urgency: string;
   createdAt: string;
   isAnonymous: boolean;
 };
@@ -90,7 +89,7 @@ export default async function ProfilePage() {
   const { data: requestsData, error: requestsError } = await admin
     .from("requests")
     .select(
-      "id,requester_name,request_type,urgency_level,status,created_at,is_anonymous",
+      "id,requester_name,request_type,status,created_at,is_anonymous",
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
@@ -113,7 +112,7 @@ export default async function ProfilePage() {
     ? await admin
         .from("requests")
         .select(
-          "id,requester_name,request_type,urgency_level,status,created_at",
+          "id,requester_name,request_type,status,created_at",
         )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
@@ -131,7 +130,6 @@ export default async function ProfilePage() {
       name: typeof row["requester_name"] === "string" ? (row["requester_name"] as string) : "—",
       type: String(row["request_type"] ?? ""),
       status: String(row["status"] ?? "pending"),
-      urgency: String(row["urgency_level"] ?? "medium"),
       createdAt: String(row["created_at"] ?? ""),
       isAnonymous: row["is_anonymous"] === true,
     }),

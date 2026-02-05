@@ -61,8 +61,7 @@ export default async function AdminRequestsPage({
   let query = supabase
     .from("requests")
     .select(
-      "id,requester_name,location,request_type,urgency_level,status,created_at",
-      // urgency_level kept for legacy data; new الطلبات تُسجل كعاجل دائماً
+      "id,requester_name,location,request_type,status,created_at",
       { count: "exact" },
     )
     .order("created_at", { ascending: false })

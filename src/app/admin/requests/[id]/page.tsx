@@ -28,6 +28,10 @@ type RequestRow = {
   images: ImageMeta[] | null;
   created_at: string;
   updated_at: string;
+  governorate: string | null;
+  address_detail: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
 };
 
 function toneForStatus(status: RequestStatus): "neutral" | "success" | "danger" {
@@ -48,7 +52,7 @@ export default async function AdminRequestDetailsPage({
   const { data, error } = await supabase
     .from("requests")
     .select(
-      "id,requester_name,phone,location,request_type,urgency_level,status,description,admin_notes,images,created_at,updated_at",
+      "id,requester_name,phone,location,request_type,status,description,admin_notes,images,created_at,updated_at,governorate,address_detail,location_lat,location_lng",
     )
     .eq("id", id)
     .single();
@@ -141,7 +145,25 @@ export default async function AdminRequestDetailsPage({
             <div className="text-sm font-semibold">معلومات أساسية</div>
             <div className="flex flex-wrap gap-2">
               <Badge tone="neutral">الهاتف: {row.phone}</Badge>
-              <Badge tone="neutral">الموقع: {row.location}</Badge>
+              {row.governorate ? (
+                <Badge tone="neutral">المحافظة: {row.governorate}</Badge>
+              ) : null}
+              {row.address_detail ? (
+                <Badge tone="neutral">العنوان: {row.address_detail}</Badge>
+              ) : (
+                <Badge tone="neutral">الموقع: {row.location}</Badge>
+              )}
+              {typeof row.location_lat === "number" &&
+              typeof row.location_lng === "number" ? (
+                <a
+                  className="inline-flex items-center rounded-full border border-black/10 bg-white/70 px-3 py-1 text-xs font-semibold text-pal-green hover:underline dark:border-white/10 dark:bg-black/40"
+                  href={`https://www.google.com/maps?q=${encodeURIComponent(`${row.location_lat},${row.location_lng}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  فتح GPS على الخريطة
+                </a>
+              ) : null}
             </div>
             <div className="text-xs text-black/60 dark:text-white/60">
               تم الإنشاء: {new Date(row.created_at).toLocaleString("ar")}

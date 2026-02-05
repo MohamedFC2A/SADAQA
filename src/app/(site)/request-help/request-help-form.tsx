@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import { requestTypeLabelAr, requestTypes } from "@/lib/requests/constants";
+import Link from "next/link";
+import { requestNeedDetails, requestTypeLabelAr, requestTypes } from "@/lib/requests/constants";
 
 type FormState =
   | { kind: "idle" }
@@ -14,9 +15,7 @@ type FormState =
   | { kind: "error"; message: string }
   | { kind: "success"; id: string };
 
-type ProfileResponse =
-  | { profile: { name: string; phone: string | null } }
-  | { error: string };
+type Profile = { name: string; phone: string; isAnonymous: boolean };
 
 const governorates = [
   "القاهرة",
@@ -48,33 +47,22 @@ const governorates = [
   "جنوب سيناء",
 ];
 
-const needOptions: Record<(typeof requestTypes)[number], { value: string; label: string }[]> =
-  {
-    food: [
-      { value: "grocery_basic", label: "مواد غذائية (أرز/سكر/زيت)" },
-      { value: "food_box", label: "سلة غذائية كاملة" },
-      { value: "ready_meals", label: "وجبات جاهزة / مطبوخة" },
-    ],
-    housing: [
-      { value: "blankets", label: "بطاطين / تدفئة" },
-      { value: "rent", label: "مساعدة إيجار عاجلة" },
-      { value: "repair", label: "ترميم بسيط / صيانة منزلية" },
-      { value: "furniture", label: "أثاث أساسي (سرير/مرتبة)" },
-    ],
-    medical: [
-      { value: "consult", label: "كشف / استشارة طبية" },
-      { value: "medicine", label: "دواء / روشتة" },
-      { value: "procedure", label: "عملية / إجراء طبي" },
-      { value: "tests", label: "تحاليل / أشعة" },
-    ],
-  };
+type GpsState =
+  | { kind: "idle" }
+  | { kind: "locating" }
+  | { kind: "error"; message: string }
+  | {
+      kind: "gps";
+      lat: number;
+      lng: number;
+      accuracyM: number | null;
+      displayName: string | null;
+    };
 
-export function RequestHelpForm() {
+export function RequestHelpForm({ profile }: { profile: Profile }) {
   const router = useRouter();
   const [state, setState] = useState<FormState>({ kind: "idle" });
 
-  const [requesterName, setRequesterName] = useState("");
-  const [phone, setPhone] = useState("");
   const [governorate, setGovernorate] = useState("القاهرة");
   const [addressDetail, setAddressDetail] = useState("");
   const [requestDetail, setRequestDetail] = useState<string>("");
@@ -83,38 +71,80 @@ export function RequestHelpForm() {
   );
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [lockedProfile, setLockedProfile] = useState(false);
+  const [gps, setGps] = useState<GpsState>({ kind: "idle" });
 
   const canSubmit = useMemo(() => {
     if (state.kind === "submitting") return false;
     if (requestType === "medical" && files.length === 0) return false;
+    if (profile.name.trim().length < 2) return false;
+    if (profile.phone.trim().length < 8) return false;
     return (
-      requesterName.trim().length >= 2 &&
-      phone.trim().length >= 8 &&
+      requestDetail.trim().length > 0 &&
       addressDetail.trim().length >= 8 &&
       description.trim().length >= 30
     );
-  }, [state.kind, requesterName, phone, addressDetail, description, requestType, files.length]);
-
-  useEffect(() => {
-    let ignore = false;
-    fetch("/api/profile", { cache: "no-store" })
-      .then((res) => res.json() as Promise<ProfileResponse>)
-      .then((data) => {
-        if (ignore) return;
-        if ("profile" in data && data.profile) {
-          if (data.profile.name) setRequesterName(data.profile.name);
-          if (data.profile.phone) setPhone(data.profile.phone);
-          setLockedProfile(Boolean(data.profile.name || data.profile.phone));
-        }
-      })
-      .catch(() => {});
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  }, [
+    state.kind,
+    requestDetail,
+    addressDetail,
+    description,
+    requestType,
+    files.length,
+    profile.name,
+    profile.phone,
+  ]);
 
   const locationString = `${governorate} — ${addressDetail.trim()}`;
+
+  async function detectLocation() {
+    if (gps.kind === "locating") return;
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      setGps({ kind: "error", message: "ميزة تحديد الموقع غير متاحة على هذا الجهاز." });
+      return;
+    }
+
+    setGps({ kind: "locating" });
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const accuracyM = Number.isFinite(pos.coords.accuracy)
+          ? Math.round(pos.coords.accuracy)
+          : null;
+
+        let displayName: string | null = null;
+        try {
+          const url = new URL("/api/geocode/reverse", window.location.origin);
+          url.searchParams.set("lat", String(lat));
+          url.searchParams.set("lng", String(lng));
+          const res = await fetch(url.toString(), { cache: "no-store" });
+          const data = (await res.json().catch(() => null)) as unknown;
+          if (res.ok && data && typeof data === "object") {
+            const obj = data as Record<string, unknown>;
+            const dn = typeof obj["displayName"] === "string" ? obj["displayName"] : null;
+            displayName = dn;
+            const gov = typeof obj["governorate"] === "string" ? obj["governorate"] : null;
+            const detail =
+              typeof obj["addressDetail"] === "string" ? obj["addressDetail"] : null;
+            if (gov && governorates.includes(gov)) setGovernorate(gov);
+            if (detail && detail.trim().length >= 8) setAddressDetail(detail);
+          }
+        } catch {
+          // ignore reverse geocode errors; user can type address manually.
+        }
+
+        setGps({ kind: "gps", lat, lng, accuracyM, displayName });
+      },
+      (err) => {
+        const msg =
+          err.code === err.PERMISSION_DENIED
+            ? "تم رفض إذن الموقع. يمكنك إدخال العنوان يدوياً."
+            : "تعذر تحديد موقعك الآن. جرّب مرة أخرى أو اكتب العنوان يدوياً.";
+        setGps({ kind: "error", message: msg });
+      },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -122,14 +152,31 @@ export function RequestHelpForm() {
 
     try {
       const detailLabel =
-        needOptions[requestType].find((opt) => opt.value === requestDetail)?.label ??
-        "";
+        requestNeedDetails[requestType].find((opt) => opt.value === requestDetail)
+          ?.label ?? "";
 
       const form = new FormData();
-      form.set("requester_name", requesterName);
-      form.set("phone", phone);
-      form.set("location", locationString);
       form.set("request_type", requestType);
+      form.set("request_detail", requestDetail);
+      if (detailLabel) form.set("request_detail_label", detailLabel);
+      form.set("governorate", governorate);
+      form.set("address_detail", addressDetail);
+      form.set("location", locationString);
+
+      if (gps.kind === "gps") {
+        form.set("location_source", "gps");
+        form.set("location_lat", String(gps.lat));
+        form.set("location_lng", String(gps.lng));
+        if (gps.accuracyM !== null) {
+          form.set("location_accuracy_m", String(gps.accuracyM));
+        }
+        if (gps.displayName) {
+          form.set("location_display_name", gps.displayName);
+        }
+      } else {
+        form.set("location_source", "manual");
+      }
+
       const composedDescription =
         detailLabel && !description.includes(detailLabel)
           ? `${description}\n\nالتفصيل المختار: ${detailLabel}`
@@ -184,34 +231,87 @@ export function RequestHelpForm() {
     setFiles(Array.from(list));
   }
 
-  const detailOptions = needOptions[requestType];
+  const detailOptions = requestNeedDetails[requestType];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="rounded-3xl border border-black/10 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-black/40">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <div className="text-sm font-semibold">بيانات الحساب (لا يمكن تعديلها هنا)</div>
+            <div className="text-xs text-black/60 dark:text-white/60">
+              الاسم ورقم الهاتف يُؤخذان من حسابك لضمان صحة التواصل.
+            </div>
+          </div>
+          <Link
+            href="/profile"
+            className="text-sm font-semibold text-pal-green hover:underline"
+          >
+            تعديل بيانات الحساب
+          </Link>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-1 rounded-2xl border border-black/10 bg-white/70 p-3 text-sm dark:border-white/10 dark:bg-black/40">
+            <div className="text-xs text-black/60 dark:text-white/60">الاسم</div>
+            <div className="font-semibold">
+              {profile.isAnonymous ? "مجهول" : profile.name || "—"}
+            </div>
+            {profile.isAnonymous ? (
+              <div className="text-xs text-black/60 dark:text-white/60">
+                الوضع المجهول مفعل من صفحة الحساب.
+              </div>
+            ) : null}
+          </div>
+          <div className="space-y-1 rounded-2xl border border-black/10 bg-white/70 p-3 text-sm dark:border-white/10 dark:bg-black/40">
+            <div className="text-xs text-black/60 dark:text-white/60">رقم التواصل</div>
+            <div className="font-semibold">{profile.phone || "—"}</div>
+            {profile.phone.trim().length < 8 ? (
+              <div className="text-xs text-pal-red">
+                أضف رقم هاتف صحيح في صفحة الحساب قبل إرسال الطلب.
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 rounded-3xl border border-black/10 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-black/40 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-semibold">اسم صاحب الطلب</label>
-          <Input
-            value={requesterName}
-            onChange={(e) => setRequesterName(e.target.value)}
-            placeholder="مثال: أحمد محمد"
-            autoComplete="name"
-            readOnly={lockedProfile}
-          />
-          {lockedProfile ? (
-            <p className="text-xs text-pal-green">مأخوذ من حسابك — لا يمكن تعديله هنا.</p>
-          ) : null}
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-semibold">رقم التواصل</label>
-          <Input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="مثال: 01xxxxxxxxx"
-            inputMode="tel"
-            autoComplete="tel"
-            readOnly={lockedProfile}
-          />
+          <label className="text-sm font-semibold">الموقع</label>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={detectLocation}
+            disabled={gps.kind === "locating"}
+            className="w-full"
+          >
+            {gps.kind === "locating" ? "جارٍ تحديد الموقع..." : "تحديد موقعي الآن"}
+          </Button>
+          {gps.kind === "gps" ? (
+            <div className="text-xs text-black/60 dark:text-white/60 space-y-1">
+              <div>
+                تم الالتقاط:{" "}
+                <span className="font-semibold">
+                  {gps.displayName ?? "تم تحديد الموقع عبر GPS"}
+                </span>
+              </div>
+              <a
+                className="font-semibold text-pal-green hover:underline"
+                href={`https://www.google.com/maps?q=${encodeURIComponent(`${gps.lat},${gps.lng}`)}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                فتح على الخريطة
+              </a>
+              {gps.accuracyM !== null ? <div>الدقة: {gps.accuracyM}m</div> : null}
+            </div>
+          ) : gps.kind === "error" ? (
+            <div className="text-xs text-pal-red">{gps.message}</div>
+          ) : (
+            <div className="text-xs text-black/60 dark:text-white/60">
+              إن لم تعمل الميزة، يمكنك إدخال العنوان يدوياً بالأسفل.
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-semibold">المحافظة</label>
@@ -253,7 +353,7 @@ export function RequestHelpForm() {
           </Select>
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-semibold">التفصيل</label>
+          <label className="text-sm font-semibold">التفصيل (إجباري)</label>
           <Select
             value={requestDetail}
             onChange={(e) => setRequestDetail(e.target.value)}

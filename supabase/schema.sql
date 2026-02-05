@@ -118,11 +118,39 @@ alter table public.donation_campaigns
 alter table public.profiles
   add column if not exists is_anonymous boolean not null default false;
 
+alter table public.profiles
+  add column if not exists phone text;
+
 alter table public.requests
   add column if not exists user_id uuid references public.profiles (id);
 
 alter table public.requests
   add column if not exists is_anonymous boolean not null default false;
+
+-- Backfill/migrate location + request detail columns (smart tracking)
+alter table public.requests
+  add column if not exists governorate text;
+
+alter table public.requests
+  add column if not exists address_detail text;
+
+alter table public.requests
+  add column if not exists location_lat double precision;
+
+alter table public.requests
+  add column if not exists location_lng double precision;
+
+alter table public.requests
+  add column if not exists location_accuracy_m integer;
+
+alter table public.requests
+  add column if not exists location_source text;
+
+alter table public.requests
+  add column if not exists request_detail text;
+
+alter table public.requests
+  add column if not exists request_detail_label text;
 
 alter table public.donations
   add column if not exists user_id uuid references public.profiles (id);
@@ -134,6 +162,17 @@ do $$
 begin
   alter table public.donation_campaigns
     add constraint donation_campaigns_goal_amount_nonnegative check (goal_amount >= 0);
+exception
+  when duplicate_object then null;
+  when others then null;
+end $$;
+
+-- Constraints (idempotent)
+do $$
+begin
+  alter table public.requests
+    add constraint requests_location_source_valid
+    check (location_source is null or location_source in ('gps','manual'));
 exception
   when duplicate_object then null;
   when others then null;

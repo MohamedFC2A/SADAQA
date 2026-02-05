@@ -11,7 +11,6 @@ import { cn } from "@/lib/cn";
 import {
   requestTypeLabelAr,
   statusLabelAr as requestStatusLabelAr,
-  urgencyLabelAr,
 } from "@/lib/requests/constants";
 
 type Profile = {
@@ -27,7 +26,6 @@ type RequestItem = {
   name: string;
   type: string;
   status: string;
-  urgency: string;
   createdAt: string;
   isAnonymous: boolean;
 };
@@ -129,6 +127,7 @@ type Props = {
 
 export function ProfileClient({ profile, requests, donations, warnings }: Props) {
   const [name, setName] = useState(profile.name);
+  const [phone, setPhone] = useState(profile.phone ?? "");
   const [isAnonymous, setIsAnonymous] = useState(profile.isAnonymous);
   const [baseProfile, setBaseProfile] = useState(profile);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">(
@@ -137,20 +136,24 @@ export function ProfileClient({ profile, requests, donations, warnings }: Props)
   const [activeTab, setActiveTab] = useState<"requests" | "donations">("requests");
 
   const isDirty =
-    name.trim() !== baseProfile.name.trim() || isAnonymous !== baseProfile.isAnonymous;
+    name.trim() !== baseProfile.name.trim() ||
+    phone.trim() !== (baseProfile.phone ?? "").trim() ||
+    isAnonymous !== baseProfile.isAnonymous;
 
   const nameOk = name.trim().length >= 2;
+  const phoneTrimmed = phone.trim();
+  const phoneOk = phoneTrimmed.length === 0 || (phoneTrimmed.length >= 8 && phoneTrimmed.length <= 20);
 
   const activity = activeTab === "requests" ? requests : donations;
 
   async function saveProfile() {
-    if (!isDirty || !nameOk || saveState === "saving") return;
+    if (!isDirty || !nameOk || !phoneOk || saveState === "saving") return;
     setSaveState("saving");
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), isAnonymous }),
+        body: JSON.stringify({ name: name.trim(), phone: phoneTrimmed, isAnonymous }),
       });
       const data = (await res.json().catch(() => null)) as unknown;
       if (!res.ok || !data || typeof data !== "object") {
@@ -161,6 +164,7 @@ export function ProfileClient({ profile, requests, donations, warnings }: Props)
       if (profileObj) {
         setBaseProfile(profileObj);
         setName(profileObj.name);
+        setPhone(profileObj.phone ?? "");
         setIsAnonymous(profileObj.isAnonymous);
       }
       setSaveState("saved");
@@ -213,7 +217,7 @@ export function ProfileClient({ profile, requests, donations, warnings }: Props)
             {baseProfile.phone ? (
               <Badge tone="neutral">هاتف: {baseProfile.phone}</Badge>
             ) : (
-              <Badge tone="neutral">أضف رقم هاتف من لوحة الدعم لاحقاً</Badge>
+              <Badge tone="warning">أضف رقم هاتف لإرسال طلب مساعدة</Badge>
             )}
           </div>
         </div>
@@ -261,6 +265,23 @@ export function ProfileClient({ profile, requests, donations, warnings }: Props)
               ) : null}
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-semibold">رقم الهاتف</label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="مثال: 01xxxxxxxxx"
+                inputMode="tel"
+                autoComplete="tel"
+              />
+              {!phoneOk ? (
+                <div className="text-xs text-pal-red">رقم الهاتف يجب أن يكون بين 8 و 20 رقمًا.</div>
+              ) : phoneTrimmed.length === 0 ? (
+                <div className="text-xs text-black/60 dark:text-white/60">
+                  مطلوب لإرسال طلب المساعدة (يمكنك إضافته الآن).
+                </div>
+              ) : null}
+            </div>
+            <div className="space-y-2 sm:col-span-3 lg:col-span-1">
               <label className="text-sm font-semibold">الوضع المجهول</label>
               <button
                 type="button"
@@ -350,7 +371,6 @@ export function ProfileClient({ profile, requests, donations, warnings }: Props)
                         {req.isAnonymous ? "مجهول" : req.name}
                       </div>
                       <Badge tone="neutral">{requestTypeLabelAr[req.type as keyof typeof requestTypeLabelAr] ?? req.type}</Badge>
-                      <Badge tone="warning">{urgencyLabelAr[req.urgency as keyof typeof urgencyLabelAr] ?? req.urgency}</Badge>
                     </div>
                     <div className="text-xs text-black/60 dark:text-white/60">
                       أُرسل في {formatDate(req.createdAt)}

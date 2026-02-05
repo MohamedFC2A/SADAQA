@@ -6,15 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   statusLabelAr,
-  urgencyLabelAr,
   type RequestStatus,
-  type UrgencyLevel,
 } from "@/lib/requests/constants";
 
 type ApiOk = {
   id: string;
   status: RequestStatus;
-  urgency_level: UrgencyLevel;
   created_at: string;
   updated_at: string;
 };
@@ -99,13 +96,6 @@ export function RequestStatusChecker({ initialId }: { initialId: string }) {
               الحالة:{" "}
               <span className="font-semibold">
                 {statusLabelAr[state.data.status]}
-              </span>
-            </div>
-            <div>
-              الإلحاح:{" "}
-              <span className="font-semibold">
-                {urgencyLabelAr[state.data.urgency_level] ??
-                  state.data.urgency_level}
               </span>
             </div>
             <div className="mt-2 text-xs text-black/60 dark:text-white/60">
