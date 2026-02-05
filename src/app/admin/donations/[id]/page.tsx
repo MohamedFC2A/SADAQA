@@ -46,7 +46,7 @@ export default async function AdminDonationDetailsPage({
       <div className="mx-auto max-w-3xl space-y-4">
         <Card className="p-6 space-y-2">
           <div className="text-xl font-semibold">تعذر تحميل التبرع</div>
-          <div className="text-sm text-black/70 dark:text-white/70">
+          <div className="text-sm text-muted-foreground">
             {error?.message ? (
               <>
                 الخطأ: <span className="font-mono">{error.message}</span>
@@ -72,7 +72,7 @@ export default async function AdminDonationDetailsPage({
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold">تفاصيل التبرع</h1>
-        <div className="text-sm text-black/60 dark:text-white/60">
+        <div className="text-sm text-muted-foreground">
           ID: <span className="font-mono">{id}</span>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default async function AdminDonationDetailsPage({
         </Card>
         <Card className="p-6 space-y-2">
           <div className="text-sm font-semibold">معلومات</div>
-          <div className="text-sm text-black/70 dark:text-white/70">
+          <div className="text-sm text-muted-foreground">
             <div>
               التاريخ:{" "}
               {new Date((data as DonationRow).created_at).toLocaleString("ar")}

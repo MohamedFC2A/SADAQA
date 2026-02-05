@@ -91,14 +91,14 @@ export function RequestStatusChecker({ initialId }: { initialId: string }) {
       {state.kind === "ok" ? (
         <Card className="p-5 space-y-2">
           <div className="text-sm font-semibold">النتيجة</div>
-          <div className="text-sm text-black/70 dark:text-white/70">
+          <div className="text-sm text-muted-foreground">
             <div>
               الحالة:{" "}
               <span className="font-semibold">
                 {statusLabelAr[state.data.status]}
               </span>
             </div>
-            <div className="mt-2 text-xs text-black/60 dark:text-white/60">
+            <div className="mt-2 text-xs text-muted-foreground">
               آخر تحديث: {new Date(state.data.updated_at).toLocaleString("ar")}
             </div>
           </div>

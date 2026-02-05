@@ -68,7 +68,7 @@ export default async function AdminCampaignsPage() {
       {error ? (
         <Card className="p-4 border border-pal-gold/30 bg-pal-gold/10">
           <div className="text-sm font-semibold">تنبيه</div>
-          <div className="text-xs text-black/70 dark:text-white/70">
+          <div className="text-xs text-muted-foreground">
             يوجد خطأ في قاعدة البيانات:{" "}
             <span className="font-mono">{error.message}</span>. إذا كان السبب
             أعمدة ناقصة، شغّل <span className="font-mono">supabase/schema.sql</span>.
@@ -82,13 +82,13 @@ export default async function AdminCampaignsPage() {
 
       <Card className="overflow-hidden">
         {rows.length === 0 ? (
-          <div className="p-6 text-sm text-black/60 dark:text-white/60">
+          <div className="p-6 text-sm text-muted-foreground">
             لا توجد حملات.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-black/5 text-black/70 dark:bg-white/10 dark:text-white/70">
+              <thead className="bg-surface-2 text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 text-right font-semibold">الاسم</th>
                   <th className="px-4 py-3 text-right font-semibold">Slug</th>
@@ -107,7 +107,7 @@ export default async function AdminCampaignsPage() {
                 {rows.map((c) => (
                   <tr
                     key={c.id}
-                    className="border-t border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/10"
+                    className="border-t border-border hover:bg-surface-2"
                   >
                     <td className="px-4 py-3 font-semibold">
                       <Link
@@ -117,7 +117,7 @@ export default async function AdminCampaignsPage() {
                         {c.title}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 font-mono text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 font-mono text-muted-foreground">
                       {c.slug}
                     </td>
                     <td className="px-4 py-3">
@@ -127,16 +127,16 @@ export default async function AdminCampaignsPage() {
                         {!c.is_featured && !c.is_new ? <Badge tone="neutral">—</Badge> : null}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {c.sort_rank}
                     </td>
-                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {c.min_amount}–{c.max_amount} {c.currency}
                     </td>
-                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {c.goal_amount} {c.currency}
                     </td>
-                    <td className="px-4 py-3 text-black/60 dark:text-white/60">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {c.ends_on ? c.ends_on : "—"}
                     </td>
                     <td className="px-4 py-3">

@@ -102,9 +102,9 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
           المتابعة باستخدام Google
         </Button>
         <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
-          <div className="text-xs text-black/50 dark:text-white/50">أو</div>
-          <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
+          <div className="h-px flex-1 bg-border" />
+          <div className="text-xs text-muted-foreground/70">أو</div>
+          <div className="h-px flex-1 bg-border" />
         </div>
       </div>
       <div className="space-y-2">
@@ -138,7 +138,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
         {state.kind === "submitting" ? "جارٍ الدخول..." : "دخول"}
       </Button>
 
-      <div className="text-xs text-black/60 dark:text-white/60">
+      <div className="text-xs text-muted-foreground">
         ملاحظة: لتفعيل Google Login أضف Redirect URL داخل Supabase Auth إلى:
         <div className="mt-1 font-mono">/auth/callback</div>
       </div>

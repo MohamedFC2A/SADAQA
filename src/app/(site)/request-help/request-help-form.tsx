@@ -235,11 +235,11 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-3xl border border-black/10 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-black/40">
+      <div className="rounded-3xl border border-border bg-surface-2 p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <div className="text-sm font-semibold">بيانات الحساب (لا يمكن تعديلها هنا)</div>
-            <div className="text-xs text-black/60 dark:text-white/60">
+            <div className="text-xs text-muted-foreground">
               الاسم ورقم الهاتف يُؤخذان من حسابك لضمان صحة التواصل.
             </div>
           </div>
@@ -252,19 +252,19 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1 rounded-2xl border border-black/10 bg-white/70 p-3 text-sm dark:border-white/10 dark:bg-black/40">
-            <div className="text-xs text-black/60 dark:text-white/60">الاسم</div>
+          <div className="space-y-1 rounded-2xl border border-border bg-surface p-3 text-sm">
+            <div className="text-xs text-muted-foreground">الاسم</div>
             <div className="font-semibold">
               {profile.isAnonymous ? "مجهول" : profile.name || "—"}
             </div>
             {profile.isAnonymous ? (
-              <div className="text-xs text-black/60 dark:text-white/60">
+              <div className="text-xs text-muted-foreground">
                 الوضع المجهول مفعل من صفحة الحساب.
               </div>
             ) : null}
           </div>
-          <div className="space-y-1 rounded-2xl border border-black/10 bg-white/70 p-3 text-sm dark:border-white/10 dark:bg-black/40">
-            <div className="text-xs text-black/60 dark:text-white/60">رقم التواصل</div>
+          <div className="space-y-1 rounded-2xl border border-border bg-surface p-3 text-sm">
+            <div className="text-xs text-muted-foreground">رقم التواصل</div>
             <div className="font-semibold">{profile.phone || "—"}</div>
             {profile.phone.trim().length < 8 ? (
               <div className="text-xs text-pal-red">
@@ -275,7 +275,7 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 rounded-3xl border border-black/10 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-black/40 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 rounded-3xl border border-border bg-surface-2 p-4 shadow-sm sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-semibold">الموقع</label>
           <Button
@@ -288,7 +288,7 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
             {gps.kind === "locating" ? "جارٍ تحديد الموقع..." : "تحديد موقعي الآن"}
           </Button>
           {gps.kind === "gps" ? (
-            <div className="text-xs text-black/60 dark:text-white/60 space-y-1">
+            <div className="space-y-1 text-xs text-muted-foreground">
               <div>
                 تم الالتقاط:{" "}
                 <span className="font-semibold">
@@ -308,7 +308,7 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
           ) : gps.kind === "error" ? (
             <div className="text-xs text-pal-red">{gps.message}</div>
           ) : (
-            <div className="text-xs text-black/60 dark:text-white/60">
+            <div className="text-xs text-muted-foreground">
               إن لم تعمل الميزة، يمكنك إدخال العنوان يدوياً بالأسفل.
             </div>
           )}
@@ -330,13 +330,13 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
             onChange={(e) => setAddressDetail(e.target.value)}
             placeholder="مثال: شارع النصر، بجوار مسجد ..., الدور الثاني"
           />
-          <p className="text-xs text-black/50 dark:text-white/60">
+          <p className="text-xs text-muted-foreground">
             نستخدمه للتوصيل السريع أو الزيارة الميدانية.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 rounded-3xl border border-black/10 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-black/40 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 rounded-3xl border border-border bg-surface-2 p-4 shadow-sm sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-semibold">نوع الاحتياج (النقدي متوقف مؤقتاً)</label>
           <Select
@@ -365,7 +365,7 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
               </option>
             ))}
           </Select>
-          <p className="text-xs text-black/50 dark:text-white/60">
+          <p className="text-xs text-muted-foreground">
             يساعدنا على تجهيز الدعم المناسب بشكل أسرع.
           </p>
         </div>
@@ -376,7 +376,7 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="اذكر الوضع الحالي، عدد الأفراد، وأي معلومات طبية أو سكنية أو غذائية مهمة."
           />
-          <p className="text-xs text-black/60 dark:text-white/60">
+          <p className="text-xs text-muted-foreground">
             لا تُشارك كلمات مرور أو معلومات مالية حساسة. الطلبات تعتبر عاجلة افتراضياً.
           </p>
         </div>
@@ -390,7 +390,7 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
             multiple
             onChange={(e) => onFilesChange(e.target.files)}
           />
-          <p className="text-xs text-black/60 dark:text-white/60">
+          <p className="text-xs text-muted-foreground">
             حد أقصى 5 صور (2MB لكل صورة). للطلبات العلاجية أرفق روشتة/تقرير/استشارة.
           </p>
           {requestType === "medical" && files.length === 0 ? (
@@ -409,7 +409,7 @@ export function RequestHelpForm({ profile }: { profile: Profile }) {
         <Button type="submit" disabled={!canSubmit}>
           {state.kind === "submitting" ? "جارٍ الإرسال..." : "إرسال الطلب العاجل"}
         </Button>
-        <div className="text-xs text-black/60 dark:text-white/60">
+        <div className="text-xs text-muted-foreground">
           بإرسال الطلب أنت توافق على استخدام بياناتك للتواصل السريع وتأكيد الاستحقاق.
         </div>
       </div>

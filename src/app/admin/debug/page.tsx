@@ -28,7 +28,7 @@ export default async function AdminDebugPage() {
 
       <Card className="p-6 space-y-2">
         <div className="text-sm font-semibold">إعدادات البيئة</div>
-        <div className="text-sm text-black/70 dark:text-white/70">
+        <div className="text-sm text-muted-foreground">
           <div>
             <span className="font-semibold">NEXT_PUBLIC_SUPABASE_URL:</span>{" "}
             <span className="font-mono">{supabaseUrl}</span>
@@ -42,9 +42,9 @@ export default async function AdminDebugPage() {
 
       <Card className="p-6 space-y-3">
         <div className="text-sm font-semibold">فحوصات</div>
-        <ul className="space-y-2 text-sm text-black/70 dark:text-white/70">
+        <ul className="space-y-2 text-sm text-muted-foreground">
           {Object.entries(checks).map(([name, result]) => (
-            <li key={name} className="rounded-xl border border-black/10 p-3 dark:border-white/10">
+            <li key={name} className="rounded-xl border border-border p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-mono">{name}</div>
                 <div className={result.error ? "text-pal-red font-semibold" : "text-pal-green font-semibold"}>
@@ -60,7 +60,7 @@ export default async function AdminDebugPage() {
             </li>
           ))}
         </ul>
-        <div className="text-xs text-black/60 dark:text-white/60">
+        <div className="text-xs text-muted-foreground">
           إذا ظهر خطأ “relation does not exist” أو “column does not exist”، شغّل{" "}
           <span className="font-mono">supabase/schema.sql</span> داخل Supabase SQL Editor لنفس المشروع المرتبط بـ Vercel.
         </div>
@@ -68,4 +68,3 @@ export default async function AdminDebugPage() {
     </div>
   );
 }
-

@@ -10,7 +10,7 @@ export default function RequestHelpPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold">طلب مساعدة عاجلة</h1>
-        <p className="text-black/70 dark:text-white/70">
+        <p className="text-muted-foreground">
           عبئ البيانات بدقة لنوصل الدعم الصحيح بأسرع وقت. اسمك ورقمك يُسحبان من
           حسابك عند تسجيل الدخول لضمان صحة التواصل، ولا تظهر للعلن.
         </p>

@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <Card className="p-6 space-y-3">
           <div className="text-2xl font-semibold">غير مصرح</div>
-          <p className="text-black/70 dark:text-white/70">
+          <p className="text-muted-foreground">
             حسابك لا يملك صلاحية الأدمن للوصول لهذه الصفحة.
           </p>
           <Link
@@ -35,4 +35,3 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     </div>
   );
 }
-

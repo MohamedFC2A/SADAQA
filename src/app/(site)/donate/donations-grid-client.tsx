@@ -90,7 +90,7 @@ export function DonationsGridClient({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <div className="text-xl font-semibold">اختر حملة وتبرع فوراً</div>
-          <div className="text-sm text-black/60 dark:text-white/60">
+          <div className="text-sm text-muted-foreground">
             يمكنك ترتيب الحملات حسب الأقرب للانتهاء أو الأحدث أو الأقرب لاكتمال الهدف.
           </div>
         </div>
@@ -121,4 +121,3 @@ export function DonationsGridClient({
     </div>
   );
 }
-

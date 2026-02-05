@@ -62,7 +62,7 @@ export default async function AdminRequestDetailsPage({
       <div className="mx-auto max-w-3xl space-y-4">
         <Card className="p-6 space-y-2">
           <div className="text-xl font-semibold">تعذر تحميل الطلب</div>
-          <div className="text-sm text-black/70 dark:text-white/70">
+          <div className="text-sm text-muted-foreground">
             {error?.message ? (
               <>
                 الخطأ: <span className="font-mono">{error.message}</span>
@@ -97,7 +97,7 @@ export default async function AdminRequestDetailsPage({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold">{row.requester_name}</h1>
-          <div className="text-sm text-black/60 dark:text-white/60">
+          <div className="text-sm text-muted-foreground">
             ID: <span className="font-mono">{row.id}</span>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default async function AdminRequestDetailsPage({
         <div className="space-y-6 lg:col-span-2">
           <Card className="p-6 space-y-3">
             <div className="text-sm font-semibold">تفاصيل الحالة</div>
-            <div className="text-sm leading-7 text-black/70 dark:text-white/70 whitespace-pre-wrap">
+            <div className="text-sm leading-7 text-muted-foreground whitespace-pre-wrap">
               {row.description}
             </div>
           </Card>
@@ -121,7 +121,7 @@ export default async function AdminRequestDetailsPage({
               <div className="text-sm font-semibold">الصور</div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {signed.map((img) => (
-                  <div key={img.path} className="overflow-hidden rounded-xl border border-black/10 dark:border-white/10">
+                  <div key={img.path} className="overflow-hidden rounded-xl border border-border">
                     <Image
                       src={img.url}
                       alt="صورة مرفقة"
@@ -133,7 +133,7 @@ export default async function AdminRequestDetailsPage({
                   </div>
                 ))}
               </div>
-              <div className="text-xs text-black/60 dark:text-white/60">
+              <div className="text-xs text-muted-foreground">
                 الروابط موقعة وتنتهي تلقائياً خلال ساعة.
               </div>
             </Card>
@@ -156,7 +156,7 @@ export default async function AdminRequestDetailsPage({
               {typeof row.location_lat === "number" &&
               typeof row.location_lng === "number" ? (
                 <a
-                  className="inline-flex items-center rounded-full border border-black/10 bg-white/70 px-3 py-1 text-xs font-semibold text-pal-green hover:underline dark:border-white/10 dark:bg-black/40"
+                  className="inline-flex items-center rounded-full border border-border bg-surface-2 px-3 py-1 text-xs font-semibold text-pal-green hover:underline"
                   href={`https://www.google.com/maps?q=${encodeURIComponent(`${row.location_lat},${row.location_lng}`)}`}
                   target="_blank"
                   rel="noreferrer"
@@ -165,7 +165,7 @@ export default async function AdminRequestDetailsPage({
                 </a>
               ) : null}
             </div>
-            <div className="text-xs text-black/60 dark:text-white/60">
+            <div className="text-xs text-muted-foreground">
               تم الإنشاء: {new Date(row.created_at).toLocaleString("ar")}
               <div />
               آخر تحديث: {new Date(row.updated_at).toLocaleString("ar")}

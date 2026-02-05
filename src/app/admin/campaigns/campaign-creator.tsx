@@ -175,7 +175,7 @@ export function CampaignCreator() {
             />
             <button
               type="button"
-              className="h-11 whitespace-nowrap rounded-xl border border-black/15 bg-white px-3 text-xs font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
+              className="h-11 whitespace-nowrap rounded-xl border border-border bg-surface-2 px-3 text-xs font-semibold hover:bg-surface-3"
               onClick={() => setStartsOn(new Date().toISOString().slice(0, 10))}
             >
               اليوم
@@ -192,7 +192,7 @@ export function CampaignCreator() {
             />
             <button
               type="button"
-              className="h-11 whitespace-nowrap rounded-xl border border-black/15 bg-white px-3 text-xs font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
+              className="h-11 whitespace-nowrap rounded-xl border border-border bg-surface-2 px-3 text-xs font-semibold hover:bg-surface-3"
               onClick={() => setEndsOn(new Date().toISOString().slice(0, 10))}
             >
               اليوم
@@ -206,7 +206,7 @@ export function CampaignCreator() {
             value={sortRank}
             onChange={(e) => setSortRank(Number(e.target.value))}
           />
-          <div className="text-xs text-black/60 dark:text-white/60">
+          <div className="text-xs text-muted-foreground">
             رقم أكبر = يظهر أولاً للمستخدمين.
           </div>
         </div>
@@ -244,7 +244,7 @@ export function CampaignCreator() {
             accept="image/jpeg,image/png,image/webp"
             onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
           />
-          <div className="text-xs text-black/60 dark:text-white/60">
+          <div className="text-xs text-muted-foreground">
             يتطلب bucket <span className="font-mono">campaign-images</span> (Public).
           </div>
         </div>

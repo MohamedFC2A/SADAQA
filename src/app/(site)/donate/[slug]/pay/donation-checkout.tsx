@@ -164,7 +164,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
                 onClick={() => setAmount(v)}
                 className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${amount === v
                     ? "border-pal-green bg-pal-green/10 text-pal-green dark:bg-pal-green/20"
-                    : "border-black/15 hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+                    : "border-border hover:bg-surface-2"
                   }`}
               >
                 {formatEgp(v)} ج
@@ -231,14 +231,14 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
                   <div className="text-sm font-semibold text-pal-green">
                     تم إنشاء كود الدفع
                   </div>
-                  <div className="mt-1 font-mono text-lg font-bold text-black dark:text-white">
+                  <div className="mt-1 font-mono text-lg font-bold text-foreground">
                     {state.paymentCode}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    className="rounded-xl border border-black/15 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
+                    className="rounded-xl border border-border bg-surface-2 px-4 py-2 text-sm font-semibold hover:bg-surface-3"
                     onClick={() => copy(state.paymentCode)}
                   >
                     نسخ الكود

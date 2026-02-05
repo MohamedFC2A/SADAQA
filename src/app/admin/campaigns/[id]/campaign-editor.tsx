@@ -275,7 +275,7 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
             />
             <button
               type="button"
-              className="h-11 whitespace-nowrap rounded-xl border border-black/15 bg-white px-3 text-xs font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
+              className="h-11 whitespace-nowrap rounded-xl border border-border bg-surface-2 px-3 text-xs font-semibold hover:bg-surface-3"
               onClick={() => setStartsOn(new Date().toISOString().slice(0, 10))}
             >
               اليوم
@@ -292,7 +292,7 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
             />
             <button
               type="button"
-              className="h-11 whitespace-nowrap rounded-xl border border-black/15 bg-white px-3 text-xs font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
+              className="h-11 whitespace-nowrap rounded-xl border border-border bg-surface-2 px-3 text-xs font-semibold hover:bg-surface-3"
               onClick={() => setEndsOn(new Date().toISOString().slice(0, 10))}
             >
               اليوم
@@ -307,7 +307,7 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
             value={sortRank}
             onChange={(e) => setSortRank(Number(e.target.value))}
           />
-          <div className="text-xs text-black/60 dark:text-white/60">
+          <div className="text-xs text-muted-foreground">
             رقم أكبر = يظهر أولاً للمستخدمين.
           </div>
         </div>
@@ -343,7 +343,7 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
       <div className="space-y-3">
         <div className="text-sm font-semibold">صورة الحملة</div>
         {campaign.image_url ? (
-          <div className="overflow-hidden rounded-2xl border border-black/10 dark:border-white/10">
+          <div className="overflow-hidden rounded-2xl border border-border">
             <div className="relative h-40 w-full">
               <Image
                 src={campaign.image_url}
@@ -354,7 +354,7 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
               />
             </div>
             <div className="flex items-center justify-between gap-2 p-3">
-              <div className="truncate text-xs text-black/60 dark:text-white/60">
+              <div className="truncate text-xs text-muted-foreground">
                 {campaign.image_url}
               </div>
               <button
@@ -367,7 +367,7 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
             </div>
           </div>
         ) : (
-          <div className="text-sm text-black/60 dark:text-white/60">
+          <div className="text-sm text-muted-foreground">
             لا توجد صورة.
           </div>
         )}
@@ -387,7 +387,7 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
             رفع صورة
           </Button>
         </div>
-        <div className="text-xs text-black/60 dark:text-white/60">
+        <div className="text-xs text-muted-foreground">
           يتطلب إنشاء Supabase Storage bucket باسم <span className="font-mono">campaign-images</span> (Public).
         </div>
       </div>

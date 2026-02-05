@@ -98,7 +98,7 @@ export default async function AdminRequestsPage({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-semibold">طلبات المساعدة</h1>
-          <div className="text-sm text-black/60 dark:text-white/60">
+          <div className="text-sm text-muted-foreground">
             الإجمالي: {total}
           </div>
         </div>
@@ -141,13 +141,13 @@ export default async function AdminRequestsPage({
         {error ? (
           <div className="p-6 text-sm text-pal-red">خطأ في تحميل البيانات.</div>
         ) : rows.length === 0 ? (
-          <div className="p-6 text-sm text-black/60 dark:text-white/60">
+          <div className="p-6 text-sm text-muted-foreground">
             لا توجد طلبات مطابقة للفلتر الحالي.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-black/5 text-black/70 dark:bg-white/10 dark:text-white/70">
+              <thead className="bg-surface-2 text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 text-right font-semibold">الاسم</th>
                   <th className="px-4 py-3 text-right font-semibold">
@@ -169,7 +169,7 @@ export default async function AdminRequestsPage({
                 {rows.map((r) => (
                   <tr
                     key={r.id}
-                    className="border-t border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/10"
+                    className="border-t border-border hover:bg-surface-2"
                   >
                     <td className="px-4 py-3">
                       <Link
@@ -179,7 +179,7 @@ export default async function AdminRequestsPage({
                         {r.requester_name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {r.location}
                     </td>
                     <td className="px-4 py-3">{requestTypeLabelAr[r.request_type]}</td>
@@ -188,7 +188,7 @@ export default async function AdminRequestsPage({
                         {statusLabelAr[r.status]}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-black/60 dark:text-white/60">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(r.created_at).toLocaleDateString("ar")}
                     </td>
                     <td className="px-4 py-3">
@@ -203,7 +203,7 @@ export default async function AdminRequestsPage({
       </Card>
 
       <div className="flex items-center justify-between">
-        <div className="text-sm text-black/60 dark:text-white/60">
+        <div className="text-sm text-muted-foreground">
           صفحة {page} من {totalPages}
         </div>
         <div className="flex gap-2">
@@ -211,7 +211,7 @@ export default async function AdminRequestsPage({
             className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
               page <= 1
                 ? "pointer-events-none opacity-50"
-                : "border-black/15 hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+                : "border-border hover:bg-surface-2"
             }`}
             href={buildUrl({ page: String(page - 1) })}
           >
@@ -221,7 +221,7 @@ export default async function AdminRequestsPage({
             className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
               page >= totalPages
                 ? "pointer-events-none opacity-50"
-                : "border-black/15 hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+                : "border-border hover:bg-surface-2"
             }`}
             href={buildUrl({ page: String(page + 1) })}
           >

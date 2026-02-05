@@ -131,10 +131,10 @@ export function DonationEditor({
       </div>
 
       {donation.payment_code ? (
-        <div className="rounded-2xl border border-black/10 bg-black/5 p-4 dark:border-white/10 dark:bg-white/10">
+        <div className="rounded-2xl border border-border bg-muted p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold text-black/60 dark:text-white/60">
+              <div className="text-xs font-semibold text-muted-foreground">
                 كود الدفع
               </div>
               <div className="mt-1 font-mono text-lg font-bold">

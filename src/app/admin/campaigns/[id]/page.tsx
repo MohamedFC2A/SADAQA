@@ -93,7 +93,7 @@ export default async function AdminCampaignDetailsPage({
       <div className="mx-auto max-w-3xl space-y-4">
         <Card className="p-6 space-y-2">
           <div className="text-xl font-semibold">تعذر تحميل الحملة</div>
-          <div className="text-sm text-black/70 dark:text-white/70">
+          <div className="text-sm text-muted-foreground">
             {schemaOutdated ? (
               <>
                 قاعدة البيانات ناقصة أعمدة. الخطأ:{" "}
@@ -132,14 +132,14 @@ export default async function AdminCampaignDetailsPage({
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold">تعديل الحملة</h1>
-        <div className="text-sm text-black/60 dark:text-white/60">
+        <div className="text-sm text-muted-foreground">
           ID: <span className="font-mono">{id}</span>
         </div>
       </div>
       <Card className="p-6">
         <CampaignEditor campaign={finalData} />
         {schemaOutdated ? (
-          <div className="mt-4 rounded-xl border border-pal-gold/30 bg-pal-gold/10 p-3 text-xs text-black/70 dark:text-white/70">
+          <div className="mt-4 rounded-xl border border-pal-gold/30 bg-pal-gold/10 p-3 text-xs text-muted-foreground">
             قاعدة البيانات ناقصة أعمدة (مثل <span className="font-mono">image_url</span>{" "}
             أو <span className="font-mono">goal_amount</span>). شغّل{" "}
             <span className="font-mono">supabase/schema.sql</span> داخل Supabase SQL Editor.

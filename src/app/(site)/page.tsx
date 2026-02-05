@@ -23,19 +23,19 @@ const highlights = [
 export default function HomePage() {
   return (
     <div className="space-y-12">
-      <section className="relative overflow-hidden rounded-3xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-black">
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-surface p-8 shadow-sm">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,153,84,.16),transparent_55%),radial-gradient(circle_at_top_left,rgba(212,175,55,.18),transparent_55%),radial-gradient(circle_at_bottom,rgba(228,49,43,.12),transparent_55%)]" />
         <div className="relative flex flex-col gap-6">
           <div className="inline-flex items-center gap-3">
             <div className="h-3 w-3 rounded-full bg-pal-red" />
-            <div className="h-3 w-3 rounded-full bg-pal-black dark:bg-white" />
+            <div className="h-3 w-3 rounded-full bg-foreground" />
             <div className="h-3 w-3 rounded-full bg-pal-green" />
             <div className="h-3 w-3 rounded-full bg-pal-gold" />
           </div>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
             MADDAD — منصة التبرعات وطلبات المساعدة
           </h1>
-          <p className="max-w-2xl text-lg leading-8 text-black/70 dark:text-white/70">
+          <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
             منصة عربية تجمع بين التبرع وطلبات المساعدة، بواجهة تحترم الخصوصية
             وتُسهل الوصول للدعم.
           </p>
@@ -61,7 +61,7 @@ export default function HomePage() {
                 </div>
                 <div className="space-y-1">
                   <div className="text-lg font-semibold">{h.title}</div>
-                  <p className="text-sm leading-6 text-black/70 dark:text-white/70">
+                  <p className="text-sm leading-6 text-muted-foreground">
                     {h.description}
                   </p>
                 </div>

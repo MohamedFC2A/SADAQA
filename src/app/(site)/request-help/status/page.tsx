@@ -10,7 +10,7 @@ export default function RequestStatusPage({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold">تتبع طلب المساعدة</h1>
-        <p className="text-black/70 dark:text-white/70">
+        <p className="text-muted-foreground">
           أدخل رقم الطلب ورقم الهاتف الذي تم التسجيل به لمعرفة حالة الطلب.
         </p>
       </div>
@@ -20,4 +20,3 @@ export default function RequestStatusPage({
     </div>
   );
 }
-

@@ -14,7 +14,7 @@ export default function AboutPage() {
       <div className="space-y-3">
         <Badge tone="success">من نحن</Badge>
         <h1 className="text-3xl font-semibold">MADDAD — مبادرة أهلية للخير</h1>
-        <p className="max-w-3xl text-black/70 dark:text-white/70 leading-7">
+        <p className="max-w-3xl text-muted-foreground leading-7">
           MADDAD مبادرة أهلية غير ربحية هدفها ربط أهل الخير بالحالات الأَولى
           بالدعم بطريقة منظمة، تحترم الخصوصية وتسهّل التحقق والمتابعة. نُراجع
           الطلبات، نطلب مستندات داعمة عند الحاجة، وننسق الدعم (علاجي/غذائي/سكني)
@@ -26,14 +26,14 @@ export default function AboutPage() {
         {pillars.map((p) => (
           <Card key={p.title} className="p-6 space-y-2">
             <div className="text-lg font-semibold">{p.title}</div>
-            <div className="text-sm text-black/70 dark:text-white/70">{p.desc}</div>
+            <div className="text-sm text-muted-foreground">{p.desc}</div>
           </Card>
         ))}
       </div>
 
       <Card className="p-6 space-y-3">
         <div className="text-sm font-semibold">كيف نعمل؟</div>
-        <div className="text-sm text-black/70 dark:text-white/70 leading-7">
+        <div className="text-sm text-muted-foreground leading-7">
           <ol className="list-decimal space-y-2 pr-5">
             <li>تسجيل طلب المساعدة عبر الحساب لضمان صحة الاسم ورقم التواصل.</li>
             <li>تحديد نوع الاحتياج والتفصيل (مثلاً: دواء/تحاليل/وجبات جاهزة/بطاطين).</li>
@@ -47,7 +47,7 @@ export default function AboutPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="p-6 space-y-2 lg:col-span-2">
           <div className="text-sm font-semibold">التحقق وحماية البيانات</div>
-          <p className="text-sm leading-7 text-black/70 dark:text-white/70">
+          <p className="text-sm leading-7 text-muted-foreground">
             نستخدم بياناتك للتواصل والتحقق فقط، ولا ننشر رقم الهاتف أو العنوان
             للعامة. قد نطلب مستندات داعمة حسب نوع الاحتياج، ويمكنك تفعيل الوضع
             المجهول ليظهر اسمك كـ “مجهول” في النشاط الظاهر بحسابك.
@@ -55,7 +55,7 @@ export default function AboutPage() {
         </Card>
         <Card className="p-6 space-y-2">
           <div className="text-sm font-semibold">كيف تساعد؟</div>
-          <p className="text-sm leading-7 text-black/70 dark:text-white/70">
+          <p className="text-sm leading-7 text-muted-foreground">
             يمكنك التبرع عبر الحملات، أو مشاركة المنصة مع من يحتاجها، أو التطوع
             معنا لاحقاً عند توفر قنوات التطوع الرسمية.
           </p>

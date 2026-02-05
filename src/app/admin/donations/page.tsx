@@ -56,7 +56,7 @@ export default async function AdminDonationsPage() {
         {campaignRows.length > 0 ? (
           <DonationCreator campaigns={campaignRows} />
         ) : (
-          <div className="text-sm text-black/60 dark:text-white/60">
+          <div className="text-sm text-muted-foreground">
             أنشئ حملة تبرع أولاً من صفحة الحملات.
           </div>
         )}
@@ -66,13 +66,13 @@ export default async function AdminDonationsPage() {
         {error ? (
           <div className="p-6 text-sm text-pal-red">خطأ في تحميل البيانات.</div>
         ) : rows.length === 0 ? (
-          <div className="p-6 text-sm text-black/60 dark:text-white/60">
+          <div className="p-6 text-sm text-muted-foreground">
             لا توجد تبرعات حتى الآن.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-black/5 text-black/70 dark:bg-white/10 dark:text-white/70">
+              <thead className="bg-surface-2 text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 text-right font-semibold">الحملة</th>
                   <th className="px-4 py-3 text-right font-semibold">القيمة</th>
@@ -94,7 +94,7 @@ export default async function AdminDonationsPage() {
                 {rows.map((r) => (
                   <tr
                     key={r.id}
-                    className="border-t border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/10"
+                    className="border-t border-border hover:bg-surface-2"
                   >
                     <td className="px-4 py-3 font-semibold">
                       <Link
@@ -106,14 +106,14 @@ export default async function AdminDonationsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-semibold">{r.amount}</span>{" "}
-                      <span className="text-black/60 dark:text-white/60">
+                      <span className="text-muted-foreground">
                         {r.currency}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 font-mono text-muted-foreground">
                       {r.payment_code ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 text-muted-foreground">
                       <div className="flex flex-col gap-1">
                         <div className="text-xs">
                           {r.payment_method ?? "—"}
@@ -123,13 +123,13 @@ export default async function AdminDonationsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {r.donor_name ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {r.phone ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-black/60 dark:text-white/60">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(r.created_at).toLocaleString("ar")}
                     </td>
                     <td className="px-4 py-3">

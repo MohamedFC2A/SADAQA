@@ -46,7 +46,7 @@ export function PurgeAllButton({
   return (
     <div className="flex items-center gap-3">
       {warning ? (
-        <div className="hidden text-xs text-black/60 dark:text-white/60 lg:block">
+        <div className="hidden text-xs text-muted-foreground lg:block">
           {warning}
         </div>
       ) : null}
@@ -66,4 +66,3 @@ export function PurgeAllButton({
     </div>
   );
 }
-

@@ -86,7 +86,7 @@ export function ImagesManager({
           onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
         />
         <div className="flex items-center justify-between gap-3">
-          <div className="text-xs text-black/60 dark:text-white/60">
+          <div className="text-xs text-muted-foreground">
             حد أقصى 5 صور (2MB لكل صورة).
           </div>
           <Button type="button" variant="secondary" onClick={upload} disabled={!canUpload}>
@@ -111,7 +111,7 @@ export function ImagesManager({
           {images.map((img) => (
             <div
               key={img.path}
-              className="overflow-hidden rounded-xl border border-black/10 dark:border-white/10"
+              className="overflow-hidden rounded-xl border border-border"
             >
               <div className="relative h-40 w-full">
                 <Image
@@ -123,7 +123,7 @@ export function ImagesManager({
                 />
               </div>
               <div className="flex items-center justify-between gap-2 p-3">
-                <div className="truncate text-xs text-black/60 dark:text-white/60">
+                <div className="truncate text-xs text-muted-foreground">
                   {img.path}
                 </div>
                 <button
@@ -138,11 +138,10 @@ export function ImagesManager({
           ))}
         </div>
       ) : (
-        <div className="text-sm text-black/60 dark:text-white/60">
+        <div className="text-sm text-muted-foreground">
           لا توجد صور مرفقة.
         </div>
       )}
     </div>
   );
 }
-

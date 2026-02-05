@@ -131,7 +131,7 @@ async function DonationsContent({
       {error ? (
         <Card className="p-4 border border-pal-gold/30 bg-pal-gold/10">
           <div className="text-sm font-semibold">تنبيه</div>
-          <div className="text-xs text-black/70 dark:text-white/70">
+          <div className="text-xs text-muted-foreground">
             يوجد خطأ في قاعدة البيانات:{" "}
             <span className="font-mono">{error.message}</span>. إذا كان السبب
             أعمدة ناقصة، شغّل <span className="font-mono">supabase/schema.sql</span>.
