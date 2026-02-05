@@ -30,7 +30,6 @@ export default function HomePage() {
             <div className="h-3 w-3 rounded-full bg-pal-red" />
             <div className="h-3 w-3 rounded-full bg-foreground" />
             <div className="h-3 w-3 rounded-full bg-pal-green" />
-            <div className="h-3 w-3 rounded-full bg-pal-gold" />
           </div>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
             MADDAD — منصة التبرعات وطلبات المساعدة

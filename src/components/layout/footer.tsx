@@ -6,7 +6,6 @@ export function Footer() {
           <span className="h-2 w-2 rounded-full bg-pal-red" />
           <span className="h-2 w-2 rounded-full bg-foreground" />
           <span className="h-2 w-2 rounded-full bg-pal-green" />
-          <span className="h-2 w-2 rounded-full bg-pal-gold" />
         </div>
         <div>© {new Date().getFullYear()} MADDAD</div>
         <div>نلتزم بخصوصية بيانات المتبرعين والمستفيدين.</div>
