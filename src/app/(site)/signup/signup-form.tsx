@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -13,7 +12,6 @@ type FormState =
   | { kind: "error"; message: string };
 
 export function SignupForm({ nextPath }: { nextPath?: string }) {
-  const router = useRouter();
   const [state, setState] = useState<FormState>({ kind: "idle" });
 
   const [name, setName] = useState("");
@@ -75,8 +73,7 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
       setState({ kind: "success", needsEmailConfirmation });
 
       if (!needsEmailConfirmation) {
-        router.push(`/onboarding?next=${encodeURIComponent(next)}`);
-        router.refresh();
+        window.location.href = `/onboarding?next=${encodeURIComponent(next)}`;
       }
     } catch {
       setState({

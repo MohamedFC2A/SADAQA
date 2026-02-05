@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,6 @@ type FormState =
   | { kind: "error"; message: string };
 
 export function LoginForm({ nextPath }: { nextPath?: string }) {
-  const router = useRouter();
   const [state, setState] = useState<FormState>({ kind: "idle" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,8 +40,8 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
         return;
       }
 
-      router.push(nextPath && nextPath.startsWith("/") ? nextPath : "/profile");
-      router.refresh();
+      const dest = nextPath && nextPath.startsWith("/") ? nextPath : "/profile";
+      window.location.href = dest;
     } catch {
       setState({
         kind: "error",
