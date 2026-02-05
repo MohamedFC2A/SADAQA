@@ -93,7 +93,7 @@ export function DonateCampaign({
             <div className="mt-4 space-y-2">
               <div className="relative h-3 w-full overflow-hidden rounded-full bg-white/15">
                 <div
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-pal-red/70 via-pal-green/80 to-pal-gold/70 transition-[width] duration-700 ease-out"
+                  className="absolute inset-0 rounded-full bg-pal-green/85 transition-[width] duration-700 ease-out"
                   style={{ width: `${percent}%` }}
                 />
                 <div
@@ -102,7 +102,9 @@ export function DonateCampaign({
                 />
                 <div
                   className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-white shadow-sm transition-[left] duration-700 ease-out"
-                  style={{ left: `calc(${percent}% - 6px)` }}
+                  style={{
+                    left: `clamp(0px, calc(${percent}% - 6px), calc(100% - 6px))`,
+                  }}
                   aria-hidden
                 />
               </div>

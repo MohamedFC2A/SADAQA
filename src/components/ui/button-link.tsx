@@ -8,7 +8,7 @@ const variantClasses: Record<Variant, string> = {
   primary:
     "bg-pal-red text-white hover:bg-pal-red/90 border border-transparent",
   secondary:
-    "bg-transparent text-foreground border border-black/15 hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10",
+    "bg-white/55 text-foreground border border-black/15 hover:bg-white/70 backdrop-blur-xl dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10",
   ghost:
     "bg-transparent text-foreground border border-transparent hover:bg-black/5 dark:hover:bg-white/10",
 };

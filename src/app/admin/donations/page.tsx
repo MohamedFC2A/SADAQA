@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DonationActions } from "@/app/admin/donations/donation-actions";
 import { DonationCreator } from "@/app/admin/donations/donation-creator";
+import { PurgeAllButton } from "@/app/admin/purge-all-button";
 
 type DonationRow = {
   id: string;
@@ -44,8 +45,11 @@ export default async function AdminDonationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-semibold">التبرعات</h1>
-        <Badge tone="neutral">آخر 50 تبرع</Badge>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-semibold">التبرعات</h1>
+          <Badge tone="neutral">آخر 50 تبرع</Badge>
+        </div>
+        <PurgeAllButton endpoint="/api/admin/donations" label="كل التبرعات" />
       </div>
 
       <Card className="p-6">

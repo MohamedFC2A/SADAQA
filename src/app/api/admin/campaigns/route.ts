@@ -66,3 +66,51 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE() {
+  try {
+    const adminCheck = await requireAdminApi();
+    if (!adminCheck.ok) {
+      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    }
+
+    const admin = createSupabaseAdminClient();
+
+    // donation_campaigns is referenced by donations, so purge donations first.
+    const { error: donationsError } = await admin
+      .from("donations")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+    if (donationsError) {
+      return NextResponse.json(
+        { error: "DB_DELETE_FAILED", message: donationsError.message },
+        { status: 500 },
+      );
+    }
+
+    const { error: campaignsError } = await admin
+      .from("donation_campaigns")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+
+    if (campaignsError) {
+      return NextResponse.json(
+        { error: "DB_DELETE_FAILED", message: campaignsError.message },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const errorId = randomUUID();
+    console.error("[DELETE /api/admin/campaigns]", { errorId, e });
+    return NextResponse.json(
+      {
+        error: "INTERNAL_ERROR",
+        errorId,
+        message: e instanceof Error ? e.message : null,
+      },
+      { status: 500 },
+    );
+  }
+}

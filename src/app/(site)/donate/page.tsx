@@ -60,7 +60,10 @@ async function DonationsContent({
 
   const schemaOutdated =
     error?.message?.includes('column "image_url"') ||
-    error?.message?.includes('column "goal_amount"');
+    error?.message?.includes('column "goal_amount"') ||
+    error?.message?.includes('column "is_featured"') ||
+    error?.message?.includes('column "is_new"') ||
+    error?.message?.includes('column "sort_rank"');
 
   const { data: campaignsFallback } = schemaOutdated
     ? await supabase

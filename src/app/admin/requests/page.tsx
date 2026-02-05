@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { RequestActions } from "@/app/admin/requests/request-actions";
+import { PurgeAllButton } from "@/app/admin/purge-all-button";
 
 type RequestRow = {
   id: string;
@@ -95,10 +96,13 @@ export default async function AdminRequestsPage({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-semibold">طلبات المساعدة</h1>
-        <div className="text-sm text-black/60 dark:text-white/60">
-          الإجمالي: {total}
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-semibold">طلبات المساعدة</h1>
+          <div className="text-sm text-black/60 dark:text-white/60">
+            الإجمالي: {total}
+          </div>
         </div>
+        <PurgeAllButton endpoint="/api/admin/requests" label="كل الطلبات" />
       </div>
 
       <Card className="p-6">

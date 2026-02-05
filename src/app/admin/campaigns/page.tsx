@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CampaignCreator } from "@/app/admin/campaigns/campaign-creator";
 import { CampaignActions } from "@/app/admin/campaigns/campaign-actions";
+import { PurgeAllButton } from "@/app/admin/purge-all-button";
 
 export default async function AdminCampaignsPage() {
   const { isAdmin } = await requireAdmin();
@@ -23,7 +24,10 @@ export default async function AdminCampaignsPage() {
   // Backward compatibility if the DB wasn't migrated yet.
   const fallback =
     error?.message?.includes('column "goal_amount"') ||
-    error?.message?.includes('column "image_url"');
+    error?.message?.includes('column "image_url"') ||
+    error?.message?.includes('column "is_featured"') ||
+    error?.message?.includes('column "is_new"') ||
+    error?.message?.includes('column "sort_rank"');
   const { data: dataFallback } = fallback
     ? await supabase
         .from("donation_campaigns")
@@ -50,8 +54,15 @@ export default async function AdminCampaignsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-semibold">حملات التبرع</h1>
-        <Badge tone="neutral">إدارة الحملات</Badge>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-semibold">حملات التبرع</h1>
+          <Badge tone="neutral">إدارة الحملات</Badge>
+        </div>
+        <PurgeAllButton
+          endpoint="/api/admin/campaigns"
+          label="كل الحملات"
+          warning="سيتم حذف التبرعات المرتبطة أيضاً."
+        />
       </div>
 
       {error ? (

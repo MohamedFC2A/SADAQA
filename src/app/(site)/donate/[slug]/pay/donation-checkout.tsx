@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 
 type Campaign = {
   id: string;
@@ -20,8 +19,6 @@ type Campaign = {
   goal_amount: number;
   is_active: boolean;
 };
-
-type PaymentMethod = "vodafone_cash" | "bank_transfer" | "whatsapp" | "other";
 
 type State =
   | { kind: "idle" }
@@ -52,7 +49,6 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
   const [amount, setAmount] = useState<number>(campaign.min_amount);
   const [donorName, setDonorName] = useState("");
   const [phone, setPhone] = useState("");
-  const [method, setMethod] = useState<PaymentMethod>("vodafone_cash");
   const [state, setState] = useState<State>({ kind: "idle" });
 
   const quickAmounts = useMemo(() => {
@@ -73,16 +69,22 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
     if (state.kind !== "ready") return "";
     const donor = donorName.trim() ? donorName.trim() : "-";
     const tel = phone.trim() ? phone.trim() : "-";
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "";
+    const adminLink = origin ? `${origin}/admin/donations/${state.id}` : "";
     return [
       "السلام عليكم،",
-      "أريد تأكيد تبرع جديد:",
+      "أريد تأكيد تبرع (محفظة / واتساب):",
       `كود الدفع: ${state.paymentCode}`,
       `الحملة: ${campaign.title}`,
       `المبلغ: ${formatEgp(amount)} ${campaign.currency}`,
       `الاسم: ${donor}`,
       `الهاتف: ${tel}`,
-      "سأرسل إيصال التحويل هنا.",
-    ].join("\n");
+      adminLink ? `رابط الأدمن: ${adminLink}` : "",
+      "سأرسل صورة إيصال الدفع هنا.",
+    ]
+      .filter((line) => Boolean(line))
+      .join("\n");
   }, [
     state,
     donorName,
@@ -104,7 +106,7 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
           amount,
           donorName: donorName.trim() ? donorName.trim() : undefined,
           phone: phone.trim() ? phone.trim() : undefined,
-          paymentMethod: method,
+          paymentMethod: "whatsapp",
         }),
       });
       const data = (await res.json().catch(() => null)) as unknown;
@@ -207,14 +209,12 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">طريقة الدفع</label>
-            <Select value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)}>
-              <option value="vodafone_cash">Vodafone Cash</option>
-              <option value="bank_transfer">تحويل</option>
-              <option value="whatsapp">تنسيق عبر واتساب</option>
-              <option value="other">أخرى</option>
-            </Select>
+          <div className="rounded-2xl border border-pal-green/20 bg-pal-green/10 p-4 text-sm text-black/70 dark:text-white/70">
+            <div className="font-semibold text-pal-green">طريقة الدفع المتاحة الآن</div>
+            <div className="mt-1">
+              الدفع يتم عبر <span className="font-semibold">محفظة / واتساب</span> (نفس
+              الطريقة): أنشئ كود الدفع ثم أرسل رسالة واتساب للأدمن مع الإيصال.
+            </div>
           </div>
 
           {state.kind === "error" ? (
@@ -252,8 +252,25 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
                   </a>
                 </div>
               </div>
-              <div className="text-xs text-black/60 dark:text-white/60">
-                احتفظ بالكود، ثم أرسل رسالة واتساب للأدمن لإتمام التحقق.
+              <div className="grid grid-cols-1 gap-3 text-xs text-black/70 dark:text-white/70 sm:grid-cols-3">
+                <div className="rounded-xl border border-black/10 bg-white/60 p-3 dark:border-white/10 dark:bg-black/30">
+                  <div className="font-semibold">1) حوّل من المحفظة</div>
+                  <div className="mt-1">
+                    حوّل المبلغ من محفظتك لأي رقم/جهة يحددها الأدمن.
+                  </div>
+                </div>
+                <div className="rounded-xl border border-black/10 bg-white/60 p-3 dark:border-white/10 dark:bg-black/30">
+                  <div className="font-semibold">2) أرسل الإيصال</div>
+                  <div className="mt-1">
+                    افتح واتساب بالزر وأرسل صورة الإيصال مع كود الدفع.
+                  </div>
+                </div>
+                <div className="rounded-xl border border-black/10 bg-white/60 p-3 dark:border-white/10 dark:bg-black/30">
+                  <div className="font-semibold">3) يتم التحقق</div>
+                  <div className="mt-1">
+                    بعد المراجعة ستتحول الحالة إلى “verified” داخل لوحة الأدمن.
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}
@@ -263,88 +280,94 @@ export function DonationCheckout({ campaign }: { campaign: Campaign }) {
               {state.kind === "creating" ? "جارٍ إنشاء الكود..." : "إنشاء كود الدفع"}
             </Button>
             <div className="text-xs text-black/60 dark:text-white/60">
-              فوري و InstaPay <span className="font-semibold">مغلقة الآن</span>.
+              ملاحظة: طرق الدفع الأخرى ستُفعّل لاحقاً بشكل رسمي داخل المنصة.
             </div>
           </div>
         </div>
       </Card>
 
       <div className="space-y-4">
-        <Card className="p-6 space-y-3">
+        <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold">Vodafone Cash</div>
-            <Badge tone="success">متاح (مؤقت)</Badge>
+            <div className="text-sm font-semibold">طرق الدفع</div>
+            <Badge tone="success">متاح الآن: واتساب</Badge>
           </div>
-          <div className="space-y-1 text-sm text-black/70 dark:text-white/70">
-            <div>
-              الاسم: <span className="font-semibold">{paymentConfig.vodafoneCash.recipientName}</span>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-mono">{paymentConfig.vodafoneCash.number}</span>
-              <button
-                type="button"
-                className="rounded-xl border border-black/15 bg-white px-3 py-2 text-xs font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
-                onClick={() => copy(paymentConfig.vodafoneCash.number)}
+
+          <div className="space-y-2">
+            <div className="rounded-2xl border border-black/10 bg-pal-green/15 px-4 py-3 dark:border-white/10">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-pal-green">
+                  محفظة / واتساب
+                </div>
+                <div className="rounded-full bg-pal-green px-3 py-1 text-xs font-semibold text-white">
+                  متاح
+                </div>
+              </div>
+              <div className="mt-1 text-xs text-black/60 dark:text-white/70">
+                أنشئ كود الدفع ثم افتح واتساب برسالة جاهزة لإرسال الإيصال.
+              </div>
+              <a
+                className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl bg-pal-green px-5 text-sm font-semibold text-white hover:bg-pal-green/90"
+                href={getWhatsappUrl("السلام عليكم، أريد إتمام تبرع عبر محفظة/واتساب. برجاء إرسال بيانات التحويل.")}
+                target="_blank"
+                rel="noreferrer"
               >
-                نسخ
-              </button>
+                اطلب بيانات الدفع على واتساب
+              </a>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-red-600/85 px-4 py-3 text-white opacity-80 dark:border-white/10">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold">Vodafone Cash</div>
+                <div className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+                  قريباً
+                </div>
+              </div>
+              <div className="mt-1 text-xs text-white/85">
+                سيتم تفعيله داخل المنصة قريباً.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-slate-900/80 px-4 py-3 text-white opacity-80 dark:border-white/10">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold">تحويل بنكي</div>
+                <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                  قريباً
+                </div>
+              </div>
+              <div className="mt-1 text-xs text-white/80">
+                سيتم تفعيله داخل المنصة قريباً.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-yellow-300/85 px-4 py-3 opacity-80 dark:border-white/10">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-sky-700">Fawry</div>
+                <div className="rounded-full bg-black/10 px-3 py-1 text-xs font-semibold text-sky-700">
+                  قريباً
+                </div>
+              </div>
+              <div className="mt-1 text-xs text-sky-700/90">
+                سيتم تفعيله داخل المنصة قريباً.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-purple-600/85 px-4 py-3 opacity-80 dark:border-white/10">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-orange-200">InstaPay</div>
+                <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-orange-200">
+                  قريباً
+                </div>
+              </div>
+              <div className="mt-1 text-xs text-orange-200/90">
+                سيتم تفعيله داخل المنصة قريباً.
+              </div>
             </div>
           </div>
+
           <div className="text-xs text-black/60 dark:text-white/60">
-            بعد التحويل أرسل إيصال الدفع على واتساب مع كود الدفع.
+            حالياً نتواصل عبر واتساب فقط لتجميع البيانات بسرعة وبأمان.
           </div>
-        </Card>
-
-        <Card className="p-6 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold">تحويل</div>
-            <Badge tone="success">متاح</Badge>
-          </div>
-          <div className="text-sm text-black/70 dark:text-white/70">
-            {paymentConfig.bankTransferHint}
-          </div>
-          <a
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-pal-green px-5 text-sm font-semibold text-white hover:bg-pal-green/90"
-            href={getWhatsappUrl("السلام عليكم، أريد بيانات التحويل لإتمام التبرع.")}
-            target="_blank"
-            rel="noreferrer"
-          >
-            تواصل عبر واتساب
-          </a>
-        </Card>
-
-        <Card className="p-6 space-y-3 opacity-70">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold">Fawry</div>
-            <Badge tone="warning">مغلق الآن</Badge>
-          </div>
-          <div className="text-sm text-black/60 dark:text-white/60">
-            سيتم تفعيل فوري قريباً.
-          </div>
-          <button
-            type="button"
-            className="h-11 w-full rounded-xl border border-black/15 bg-white text-sm font-semibold text-black/40 dark:border-white/15 dark:bg-black dark:text-white/40"
-            disabled
-          >
-            قريباً
-          </button>
-        </Card>
-
-        <Card className="p-6 space-y-3 opacity-70">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold">InstaPay</div>
-            <Badge tone="warning">مغلق الآن</Badge>
-          </div>
-          <div className="text-sm text-black/60 dark:text-white/60">
-            سيتم تفعيل InstaPay قريباً.
-          </div>
-          <button
-            type="button"
-            className="h-11 w-full rounded-xl border border-black/15 bg-white text-sm font-semibold text-black/40 dark:border-white/15 dark:bg-black dark:text-white/40"
-            disabled
-          >
-            قريباً
-          </button>
         </Card>
       </div>
     </div>
