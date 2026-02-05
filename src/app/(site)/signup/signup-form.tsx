@@ -57,13 +57,14 @@ export function SignupForm({ nextPath }: { nextPath?: string }) {
 
       const data = (await res.json().catch(() => null)) as any;
       if (!res.ok) {
+        const err = typeof data?.error === "string" ? String(data.error) : null;
         setState({
           kind: "error",
           message:
-            String(data?.error ?? "")
-              .toLowerCase()
-              .includes("email_already")
+            res.status === 409 || err === "EMAIL_ALREADY_REGISTERED"
               ? "هذا البريد مسجل بالفعل. سجّل دخولك بدلاً من ذلك."
+              : res.status >= 500
+                ? "خطأ في السيرفر أثناء إنشاء الحساب. تأكد من مفاتيح Supabase على Vercel وأنها لنفس المشروع."
               : "تعذر إنشاء الحساب حالياً. تحقق من البيانات أو جرّب مرة أخرى.",
         });
         return;

@@ -33,9 +33,22 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
       });
 
       if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as unknown;
+        const err =
+          data && typeof data === "object" && typeof (data as any).error === "string"
+            ? String((data as any).error)
+            : null;
+
         setState({
           kind: "error",
-          message: "بيانات الدخول غير صحيحة أو غير مسموحة.",
+          message:
+            res.status === 401
+              ? "بيانات الدخول غير صحيحة أو الحساب غير مؤكد."
+              : res.status >= 500
+                ? "خطأ في السيرفر أثناء تسجيل الدخول. تأكد من مفاتيح Supabase على Vercel وأنها لنفس المشروع."
+                : err === "INVALID_INPUT"
+                  ? "تأكد من البريد الإلكتروني وكلمة المرور."
+                  : "تعذر تسجيل الدخول حالياً. حاول مرة أخرى.",
         });
         return;
       }
