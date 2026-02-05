@@ -13,7 +13,7 @@ export default function LoginPage({
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold">تسجيل الدخول</h1>
         <p className="text-black/70 dark:text-white/70">
-          سجّل الدخول للوصول للوحة الإدارة.
+          سجّل الدخول لإدارة حسابك، متابعة التبرعات، وتقديم طلب مساعدة عند الحاجة.
         </p>
       </div>
       <Card className="p-6">

@@ -17,6 +17,9 @@ const createSchema = z.object({
   starts_on: z.string().nullable().optional(),
   ends_on: z.string().nullable().optional(),
   is_active: z.boolean().default(true),
+  is_featured: z.boolean().default(false),
+  is_new: z.boolean().default(false),
+  sort_rank: z.number().int().default(0),
 });
 
 export async function POST(request: NextRequest) {

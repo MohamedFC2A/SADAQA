@@ -53,7 +53,10 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, name)
-  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.email))
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'full_name', new.email, new.phone, 'مستخدم جديد')
+  )
   on conflict (id) do nothing;
   return new;
 end;
@@ -113,6 +116,19 @@ alter table public.donation_campaigns
 
 alter table public.donation_campaigns
   add column if not exists goal_amount integer not null default 10000;
+
+-- Backfill/migrate campaign flags for sorting & UI labels
+alter table public.donation_campaigns
+  add column if not exists is_featured boolean not null default false;
+
+alter table public.donation_campaigns
+  add column if not exists is_new boolean not null default false;
+
+alter table public.donation_campaigns
+  add column if not exists sort_rank integer not null default 0;
+
+create index if not exists donation_campaigns_sort_idx
+  on public.donation_campaigns (is_active, is_featured, sort_rank, created_at);
 
 -- Backfill/migrate new profile + activity columns
 alter table public.profiles

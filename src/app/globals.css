@@ -37,3 +37,23 @@ body {
 ::selection {
   background: color-mix(in oklab, var(--pal-gold) 35%, transparent);
 }
+
+@keyframes progress-shimmer {
+  0% {
+    transform: translateX(-40%);
+  }
+  100% {
+    transform: translateX(40%);
+  }
+}
+
+.progress-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  transform: translateX(-40%);
+  animation: progress-shimmer 1.8s linear infinite;
+}

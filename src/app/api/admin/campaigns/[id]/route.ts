@@ -19,6 +19,9 @@ const patchSchema = z.object({
   starts_on: z.string().nullable().optional(),
   ends_on: z.string().nullable().optional(),
   is_active: z.boolean().optional(),
+  is_featured: z.boolean().optional(),
+  is_new: z.boolean().optional(),
+  sort_rank: z.number().int().optional(),
   image_url: z.string().trim().max(500).nullable().optional(),
 });
 

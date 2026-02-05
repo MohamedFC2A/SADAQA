@@ -20,6 +20,9 @@ type CampaignRow = {
   starts_on: string | null;
   ends_on: string | null;
   is_active: boolean;
+  is_featured: boolean;
+  is_new: boolean;
+  sort_rank: number;
 };
 
 type State =
@@ -41,6 +44,9 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
   const [startsOn, setStartsOn] = useState(campaign.starts_on ?? "");
   const [endsOn, setEndsOn] = useState(campaign.ends_on ?? "");
   const [isActive, setIsActive] = useState<boolean>(campaign.is_active);
+  const [isFeatured, setIsFeatured] = useState<boolean>(campaign.is_featured);
+  const [isNew, setIsNew] = useState<boolean>(campaign.is_new);
+  const [sortRank, setSortRank] = useState<number>(campaign.sort_rank);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const changed = useMemo(() => {
@@ -54,7 +60,10 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
       goalAmount !== campaign.goal_amount ||
       startsOn !== (campaign.starts_on ?? "") ||
       endsOn !== (campaign.ends_on ?? "") ||
-      isActive !== campaign.is_active
+      isActive !== campaign.is_active ||
+      isFeatured !== campaign.is_featured ||
+      isNew !== campaign.is_new ||
+      sortRank !== campaign.sort_rank
     );
   }, [
     slug,
@@ -67,6 +76,9 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
     startsOn,
     endsOn,
     isActive,
+    isFeatured,
+    isNew,
+    sortRank,
     campaign,
   ]);
 
@@ -91,6 +103,9 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
           starts_on: startsOn ? startsOn : null,
           ends_on: endsOn ? endsOn : null,
           is_active: isActive,
+          is_featured: isFeatured,
+          is_new: isNew,
+          sort_rank: sortRank,
         }),
       });
       if (!res.ok) {
@@ -252,29 +267,74 @@ export function CampaignEditor({ campaign }: { campaign: CampaignRow }) {
 
         <div className="space-y-2">
           <label className="text-sm font-semibold">بداية</label>
-          <Input
-            type="date"
-            value={startsOn}
-            onChange={(e) => setStartsOn(e.target.value)}
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={startsOn}
+              onChange={(e) => setStartsOn(e.target.value)}
+            />
+            <button
+              type="button"
+              className="h-11 whitespace-nowrap rounded-xl border border-black/15 bg-white px-3 text-xs font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
+              onClick={() => setStartsOn(new Date().toISOString().slice(0, 10))}
+            >
+              اليوم
+            </button>
+          </div>
         </div>
         <div className="space-y-2">
           <label className="text-sm font-semibold">نهاية</label>
-          <Input
-            type="date"
-            value={endsOn}
-            onChange={(e) => setEndsOn(e.target.value)}
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={endsOn}
+              onChange={(e) => setEndsOn(e.target.value)}
+            />
+            <button
+              type="button"
+              className="h-11 whitespace-nowrap rounded-xl border border-black/15 bg-white px-3 text-xs font-semibold hover:bg-black/5 dark:border-white/15 dark:bg-black dark:hover:bg-white/10"
+              onClick={() => setEndsOn(new Date().toISOString().slice(0, 10))}
+            >
+              اليوم
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:col-span-2">
-          <input
-            id="isActive"
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold">أولوية الترتيب</label>
+          <Input
+            type="number"
+            value={sortRank}
+            onChange={(e) => setSortRank(Number(e.target.value))}
           />
-          <label htmlFor="isActive" className="text-sm font-semibold">
+          <div className="text-xs text-black/60 dark:text-white/60">
+            رقم أكبر = يظهر أولاً للمستخدمين.
+          </div>
+        </div>
+        <div className="flex items-center gap-4 sm:col-span-2">
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+            />
+            مميز
+          </label>
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={isNew}
+              onChange={(e) => setIsNew(e.target.checked)}
+            />
+            جديد
+          </label>
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input
+              id="isActive"
+              type="checkbox"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+            />
             نشط على المنصة
           </label>
         </div>

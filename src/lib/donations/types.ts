@@ -11,6 +11,10 @@ export type DonationCampaign = {
   starts_on: string | null;
   ends_on: string | null;
   is_active: boolean;
+  is_featured: boolean;
+  is_new: boolean;
+  sort_rank: number;
+  created_at: string | null;
 };
 
 export type Donation = {

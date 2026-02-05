@@ -13,8 +13,12 @@ export default async function AdminCampaignsPage() {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("donation_campaigns")
-    .select("id,slug,title,is_active,min_amount,max_amount,goal_amount,currency")
-    .order("created_at", { ascending: true });
+    .select(
+      "id,slug,title,is_active,min_amount,max_amount,goal_amount,currency,is_featured,is_new,sort_rank,ends_on,created_at",
+    )
+    .order("is_featured", { ascending: false })
+    .order("sort_rank", { ascending: false })
+    .order("created_at", { ascending: false });
 
   // Backward compatibility if the DB wasn't migrated yet.
   const fallback =
@@ -23,8 +27,8 @@ export default async function AdminCampaignsPage() {
   const { data: dataFallback } = fallback
     ? await supabase
         .from("donation_campaigns")
-        .select("id,slug,title,is_active,min_amount,max_amount,currency")
-        .order("created_at", { ascending: true })
+        .select("id,slug,title,is_active,min_amount,max_amount,currency,ends_on,created_at")
+        .order("created_at", { ascending: false })
     : { data: null as unknown };
 
   const rawList = (fallback ? dataFallback : data) ?? [];
@@ -37,6 +41,10 @@ export default async function AdminCampaignsPage() {
     max_amount: Number(c["max_amount"] ?? 100),
     currency: String(c["currency"] ?? "EGP"),
     goal_amount: Number(c["goal_amount"] ?? 10000),
+    is_featured: c["is_featured"] === true,
+    is_new: c["is_new"] === true,
+    sort_rank: Number(c["sort_rank"] ?? 0),
+    ends_on: typeof c["ends_on"] === "string" ? c["ends_on"] : null,
   }));
 
   return (
@@ -73,8 +81,11 @@ export default async function AdminCampaignsPage() {
                 <tr>
                   <th className="px-4 py-3 text-right font-semibold">الاسم</th>
                   <th className="px-4 py-3 text-right font-semibold">Slug</th>
+                  <th className="px-4 py-3 text-right font-semibold">وسوم</th>
+                  <th className="px-4 py-3 text-right font-semibold">أولوية</th>
                   <th className="px-4 py-3 text-right font-semibold">المدى</th>
                   <th className="px-4 py-3 text-right font-semibold">الهدف</th>
+                  <th className="px-4 py-3 text-right font-semibold">نهاية</th>
                   <th className="px-4 py-3 text-right font-semibold">الحالة</th>
                   <th className="px-4 py-3 text-right font-semibold">
                     إجراءات
@@ -98,11 +109,24 @@ export default async function AdminCampaignsPage() {
                     <td className="px-4 py-3 font-mono text-black/70 dark:text-white/70">
                       {c.slug}
                     </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        {c.is_featured ? <Badge tone="warning">مميز</Badge> : null}
+                        {c.is_new ? <Badge tone="success">جديد</Badge> : null}
+                        {!c.is_featured && !c.is_new ? <Badge tone="neutral">—</Badge> : null}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                      {c.sort_rank}
+                    </td>
                     <td className="px-4 py-3 text-black/70 dark:text-white/70">
                       {c.min_amount}–{c.max_amount} {c.currency}
                     </td>
                     <td className="px-4 py-3 text-black/70 dark:text-white/70">
                       {c.goal_amount} {c.currency}
+                    </td>
+                    <td className="px-4 py-3 text-black/60 dark:text-white/60">
+                      {c.ends_on ? c.ends_on : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <Badge tone={c.is_active ? "success" : "neutral"}>

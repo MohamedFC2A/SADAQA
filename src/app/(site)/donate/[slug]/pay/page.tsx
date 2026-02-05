@@ -44,7 +44,7 @@ export default async function DonatePayPage({
           alt={campaign.title}
           fill
           priority
-          className="object-cover blur-md opacity-60 scale-110"
+          className="object-cover blur-sm opacity-55 scale-110"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_left,rgba(0,0,0,.78),rgba(0,0,0,.3),rgba(0,0,0,.85))]" />
         <div className="relative z-10 space-y-2">
@@ -62,4 +62,3 @@ export default async function DonatePayPage({
     </div>
   );
 }
-

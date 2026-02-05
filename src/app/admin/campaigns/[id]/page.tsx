@@ -16,6 +16,9 @@ type CampaignRow = {
   starts_on: string | null;
   ends_on: string | null;
   is_active: boolean;
+  is_featured: boolean;
+  is_new: boolean;
+  sort_rank: number;
 };
 
 export default async function AdminCampaignDetailsPage({
@@ -32,7 +35,7 @@ export default async function AdminCampaignDetailsPage({
   const { data, error } = await supabase
     .from("donation_campaigns")
     .select(
-      "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,starts_on,ends_on,is_active",
+      "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,starts_on,ends_on,is_active,is_featured,is_new,sort_rank",
     )
     .eq("id", id)
     .single();
@@ -76,6 +79,9 @@ export default async function AdminCampaignDetailsPage({
         ends_on:
           typeof rawObj["ends_on"] === "string" ? rawObj["ends_on"] : null,
         is_active: Boolean(rawObj["is_active"]),
+        is_featured: rawObj["is_featured"] === true,
+        is_new: rawObj["is_new"] === true,
+        sort_rank: Number(rawObj["sort_rank"] ?? 0),
       }
     : null;
 

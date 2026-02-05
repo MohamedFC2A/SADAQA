@@ -1,8 +1,8 @@
 import Image from "next/image";
-import { DonateCampaign } from "@/app/(site)/donate/donate-campaign";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { DonationCampaign as Campaign } from "@/lib/donations/types";
 import { Card } from "@/components/ui/card";
+import { DonationsGridClient } from "@/app/(site)/donate/donations-grid-client";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ export default function DonatePage() {
           alt="تبرعات الطعام"
           fill
           priority
-          className="object-cover blur-md opacity-70 scale-110"
+          className="object-cover blur-sm opacity-65 scale-110"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_left,rgba(0,0,0,.75),rgba(0,0,0,.35),rgba(0,0,0,.75))]" />
         <div className="relative z-10 space-y-3">
@@ -26,7 +26,7 @@ export default function DonatePage() {
             MADDAD
           </h1>
           <p className="max-w-2xl text-base leading-7 text-white/85">
-            تبرعك يصنع فرقاً حقيقياً. اختر حملة “إطعام المساكين” وسجّل تبرعك الآن.
+            تبرعك يصنع فرقاً حقيقياً. اختر الحملة المناسبة وسجّل تبرعك خلال دقيقة.
           </p>
           <div className="flex items-center gap-2 text-sm font-semibold text-white/90">
             <span className="h-2 w-2 rounded-full bg-pal-red" />
@@ -51,10 +51,12 @@ async function DonationsContent({
   const { data: campaigns, error } = await supabase
     .from("donation_campaigns")
     .select(
-      "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,starts_on,ends_on,is_active",
+      "id,slug,title,description,image_url,currency,min_amount,max_amount,goal_amount,starts_on,ends_on,is_active,is_featured,is_new,sort_rank,created_at",
     )
     .eq("is_active", true)
-    .order("created_at", { ascending: true });
+    .order("is_featured", { ascending: false })
+    .order("sort_rank", { ascending: false })
+    .order("created_at", { ascending: false });
 
   const schemaOutdated =
     error?.message?.includes('column "image_url"') ||
@@ -64,10 +66,10 @@ async function DonationsContent({
     ? await supabase
         .from("donation_campaigns")
         .select(
-          "id,slug,title,description,currency,min_amount,max_amount,starts_on,ends_on,is_active",
+          "id,slug,title,description,currency,min_amount,max_amount,starts_on,ends_on,is_active,created_at",
         )
         .eq("is_active", true)
-        .order("created_at", { ascending: true })
+        .order("created_at", { ascending: false })
     : { data: null as unknown };
 
   const raw = (schemaOutdated ? campaignsFallback : campaigns) ?? [];
@@ -84,6 +86,10 @@ async function DonationsContent({
     starts_on: typeof c["starts_on"] === "string" ? c["starts_on"] : null,
     ends_on: typeof c["ends_on"] === "string" ? c["ends_on"] : null,
     is_active: Boolean(c["is_active"]),
+    is_featured: c["is_featured"] === true,
+    is_new: c["is_new"] === true,
+    sort_rank: Number(c["sort_rank"] ?? 0),
+    created_at: typeof c["created_at"] === "string" ? c["created_at"] : null,
   })) as Campaign[];
   const ids = list.map((c) => c.id);
 
@@ -130,15 +136,9 @@ async function DonationsContent({
         </Card>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {list.map((c) => (
-          <DonateCampaign
-            key={c.id}
-            campaign={c}
-            totalDonated={totals.get(c.id) ?? 0}
-          />
-        ))}
-      </div>
+      <DonationsGridClient
+        items={list.map((c) => ({ campaign: c, totalDonated: totals.get(c.id) ?? 0 }))}
+      />
     </div>
   );
 }
